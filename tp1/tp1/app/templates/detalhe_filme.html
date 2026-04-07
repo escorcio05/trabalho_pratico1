@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="movie-card" style="margin-top: 20px;">
+        <div class="row">
+            <div class="col-md-3">
+                {% if filme.cartaz %}
+                    <img src="{{ filme.cartaz }}" alt="{{ filme.titulo }}" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
+                {% endif %}
+            </div>
+
+            <div class="col-md-9">
+                <h1 style="color: #f5c518; font-size: 3em; margin-top: 0; margin-bottom: 5px;">{{ filme.titulo }}</h1>
+                <p style="color: #888; font-size: 1.1em; margin-bottom: 10px;">{{ filme.data_lancamento|date:"d M Y" }}</p>
+                {% if filme.genero %}
+                    <p style="margin-bottom: 20px;"><span class="label label-primary" style="font-size: 1em;">{{ filme.genero.nome }}</span></p>
+                {% endif %}
+
+                <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                    <div class="sistema-classificacao">
+                        <span class="estrela" data-valor="1">★</span>
+                        <span class="estrela" data-valor="2">★</span>
+                        <span class="estrela" data-valor="3">★</span>
+                        <span class="estrela" data-valor="4">★</span>
+                        <span class="estrela" data-valor="5">★</span>
+                    </div>
+                    <span style="color: #666; font-size: 1.2em;">Nota: <strong id="nota-escolhida" style="color: #f5c518;">0</strong>/5</span>
+                </div>
+
+                {% if filme.sinopse %}
+                    <p style="font-size: 1.2em; line-height: 1.6; margin-bottom: 20px;">{{ filme.sinopse }}</p>
+                {% endif %}
+
+                <hr style="border-color: #333;">
+
+                <p style="font-size: 1.2em;"><strong>Realizador:</strong> <span style="color: #4da6ff;">{{ filme.realizador.nome }}</span></p>
+                <p style="font-size: 1.2em;"><strong>Elenco:</strong> <span style="color: #4da6ff;">{{ filme.atores.all|join:", " }}</span></p>
+
+                <div style="margin-top: 30px;">
+                    <a href="{% url 'lista_filmes' %}" class="btn btn-warning">Voltar à Lista</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'content/script.js' %}"></script>
+{% endblock %}
