@@ -1,7 +1,25 @@
 Nos filmes dar para comentar (ForeignKey de Umaconta:váriosComentários)
 
-LogOut ir para a página principal (Dá erro ao fazer sair)
+LogOut ir para a página principal (Dá erro ao fazer sair) => Feito
 
 Colocar para filtrar por Nome/Data/Autores/etc...
+
+
+Distinção de Atores : O sistema deve distinguir entre diferentes tipos de utilizadores (ex: Administrador vs. Utilizador Comum).
+
+O que falta: Garante que certas páginas (como "Adicionar Filme") só aparecem para o Admin, e que o utilizador comum só pode, por exemplo, ver e comentar.
+
+Página de Detalhe do Filme: Quando clicas num filme na lista, deve abrir uma página com a sinopse, o realizador, os atores e o género.
+
+
+Sistema de Comentários ou Avaliações: Uma das valorizações do projeto é a "exploração do conjunto de dados". Permitir que os utilizadores registados deixem uma nota (1 a 5 estrelas) ou um comentário num filme seria um "plus" enorme.
+
+
+Pesquisa Funcional: Já criaste o formulário de pesquisa no forms.py, agora garante que ele filtra mesmo os filmes na página principal.
+
+Grelha de Posters (Cards): Em vez de uma lista de texto, usa o Bootstrap para criar "Cards" com a imagem do filme, o título e o botão "Ver Mais".
+
+Feedback ao Utilizador: Quando alguém se regista ou faz login, mostra uma mensagem de sucesso (Django Messages).
+
 
 etc...

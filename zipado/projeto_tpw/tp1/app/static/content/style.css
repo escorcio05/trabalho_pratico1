@@ -102,3 +102,12 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
 .btn-warning:hover {
     background-color: #e2b616;
 }
+
+/* Animação do rolo*/
+
+.icone-rolo-animado {
+    color: #ffc107; /* O amarelo 'warning' do Bootstrap, para condizer com o teu botão */
+    font-size: 1.2em; /* Um pouco maior que o texto, mas não muito */
+    margin-left: 10px; /* Espaço entre a palavra MOVIEZ e o ícone */
+    display: inline-block;
+}/* Obrigatório para a rotação funcionar bem */
