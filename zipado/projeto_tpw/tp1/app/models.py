@@ -24,7 +24,7 @@ class Filme(models.Model):
     data_lancamento = models.DateField()
     sinopse = models.TextField(blank=True, null=True)
     cartaz = models.URLField(max_length=500, null=True, blank=True)
-    realizador = models.ForeignKey(Realizador, on_delete=models.CASCADE)
+    realizador = models.ForeignKey(Realizador, on_delete=models.CASCADE) # um realizador para vários filmes
     atores = models.ManyToManyField(Ator)
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True, blank=True)
 

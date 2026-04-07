@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="register-container">
+    <h2 class="section-title">Criar Conta - MOVIEZ</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-style-django">
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit">Registar</button>
+    </form>
+
+    <div class="footer-text">
+        Já tem uma conta? <a href="{% url 'login' %}">Faça login aqui</a>
+    </div>
+</div>
+{% endblock %}
