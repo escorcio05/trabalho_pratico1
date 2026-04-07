@@ -3,22 +3,48 @@
 {% block content %}
     <h2 class="section-title">Filmes em Destaque</h2>
 
-    <div style="margin-bottom: 30px; background: #1f1f1f; padding: 20px; border-radius: 8px; border: 1px solid #333;">
-        <form method="GET" action="{% url 'lista_filmes' %}" class="form-inline">
-            <div class="form-group">
-                {{ form.query.label_tag }}
-                {{ form.query }}
-            </div>
-            <button type="submit" class="btn btn-warning">Buscar</button>
-            <a href="{% url 'lista_filmes' %}" class="btn btn-default">Limpar</a>
-        </form>
+    <div style="margin-bottom: 30px;">
+    <form method="GET" action="{% url 'lista_filmes' %}"
+          style="display: flex; align-items: center; background: white; border-radius: 50px; padding: 5px 10px; overflow: hidden; width: 100%; max-width: 1000px; margin: 0 auto;">
+
+        <div style="flex-grow: 1; padding-left: 15px;">
+            {{ form.query }}
+        </div>
+
+        <a href="{% url 'lista_filmes' %}"
+           style="text-decoration: none; color: #999; font-size: 20px; padding: 0 15px; font-family: sans-serif;"
+           title="Limpar">
+           &times;
+        </a>
+
+        <button type="submit" class="btn"
+                style="background: linear-gradient(90deg, black 0%, #f5c518 100%); color: white; border-radius: 50px; padding: 10px 30px; border: none; font-weight: bold;">
+            Search
+        </button>
+
+    </form>
     </div>
 
-    <div style="margin-bottom: 20px; background: #1f1f1f; padding: 10px; border-radius: 8px; border: 1px solid #333;">
-        <span style="color: #888; margin-right: 10px;">Ordenar por:</span>
-        <a href="?ordenar=recentes{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'recentes' %}btn-warning{% else %}btn-default{% endif %}">Mais Recentes</a>
-        <a href="?ordenar=antigos{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'antigos' %}btn-warning{% else %}btn-default{% endif %}">Mais Antigos</a>
-        <a href="?ordenar=titulo{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'titulo' %}btn-warning{% else %}btn-default{% endif %}">Título (A-Z)</a>
+    <div style="margin-bottom: 20px; background: #1f1f1f; padding: 10px; border-radius: 8px; border: 1px solid #333; display: flex; align-items: center; gap: 10px;">
+        <span style="color: #888;">Ordenar por:</span>
+
+        <a href="?{% if 'recentes' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'recentes' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=recentes{% for f in filtros_ativos %}{% if f != 'antigos' %}&ordenar={{ f }}{% endif %}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
+           class="btn btn-xs {% if 'recentes' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
+           style="width: auto; margin: 0; {% if 'recentes' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
+           Mais Recentes
+        </a>
+
+        <a href="?{% if 'antigos' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'antigos' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=antigos{% for f in filtros_ativos %}{% if f != 'recentes' %}&ordenar={{ f }}{% endif %}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
+           class="btn btn-xs {% if 'antigos' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
+           style="width: auto; margin: 0; {% if 'antigos' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
+           Mais Antigos
+        </a>
+
+        <a href="?{% if 'titulo' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'titulo' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=titulo{% for f in filtros_ativos %}&ordenar={{ f }}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
+           class="btn btn-xs {% if 'titulo' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
+           style="width: auto; margin: 0; {% if 'titulo' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
+           Título (A-Z)
+        </a>
     </div>
 
     <div class="row">

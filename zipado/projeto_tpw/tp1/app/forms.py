@@ -4,9 +4,14 @@ from django.contrib.auth.models import User
 
 class PesquisaFilmeForm(forms.Form):
     query = forms.CharField(
-        label='Pesquisar Filme',
+        label='', # Removemos o label para ficar igual à imagem
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite o título...'})
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search for a movie, tv show, person...',
+            'style': 'border: none; background: transparent; color: black; outline: none; box-shadow: none;'
+        })
     )
 
 class RegistoForm(UserCreationForm):
