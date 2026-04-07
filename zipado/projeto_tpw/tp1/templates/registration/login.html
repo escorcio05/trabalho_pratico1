@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="movie-card" style="max-width: 400px; margin: 50px auto;">
+    <h2 class="section-title">Login - MOVIEZ</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-warning btn-block">Entrar</button>
+    </form>
+</div>
+{% endblock %}
