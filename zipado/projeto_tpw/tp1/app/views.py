@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .models import Filme, Avaliacao
 from .forms import PesquisaFilmeForm
+from .forms import RegistoForm
 
 # 1. Listagem, Pesquisa e Ordenação (Tudo numa só função)
 def lista_filmes(request):
@@ -52,7 +53,7 @@ def detalhe_filme(request, filme_id):
 # 3. Registo de Utilizador
 def registo(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistoForm(request.POST)
         if form.is_valid():
             form.save()
             print("SUCESSO: Utilizador guardado!")  # Vais ver isto no terminal
@@ -61,6 +62,6 @@ def registo(request):
             # Isto vai mostrar no terminal do PyCharm o ERRO exato da validação
             print("ERRO NO FORMULÁRIO:", form.errors)
     else:
-        form = UserCreationForm()
+        form = RegistoForm()
 
     return render(request, 'registration/registo.html', {'form': form})

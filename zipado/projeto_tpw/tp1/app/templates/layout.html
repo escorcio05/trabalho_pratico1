@@ -22,10 +22,14 @@
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav navbar-right">
                     {% if user.is_authenticated %}
-                        <li><p class="navbar-text">Olá, <strong>{{ user.username }}</strong>!</p></li>
-                        <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Sair</a></li>
+                        <span class="text-white me-3">Olá, {{ user.username }}!</span>
+
+                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">Sair</button>
+                        </form>
                     {% else %}
-                        <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span> Entrar</a></li>
+                        <a href="{% url 'login' %}" class="btn btn-warning btn-sm">Entrar</a>
                     {% endif %}
                 </ul>
             </div>
