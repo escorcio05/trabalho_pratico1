@@ -1,0 +1,7 @@
+Nos filmes dar para comentar (ForeignKey de Umaconta:váriosComentários)
+
+LogOut ir para a página principal (Dá erro ao fazer sair)
+
+Colocar para filtrar por Nome/Data/Autores/etc...
+
+etc...

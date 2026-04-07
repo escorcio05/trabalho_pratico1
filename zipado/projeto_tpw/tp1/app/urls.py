@@ -8,9 +8,9 @@ urlpatterns = [
     path('filme/<int:filme_id>/', views.detalhe_filme, name='detalhe_filme'),
 
     # Rota de Registo (a que criámos na views.py)
+    # Correto: apenas o nome da função, sem parênteses e sem template_name aqui
     path('registo/', views.registo, name='registo'),
-
     # Rotas de Login/Logout (usando as views prontas do Django)
-    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

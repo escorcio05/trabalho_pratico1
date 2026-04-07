@@ -55,9 +55,12 @@ def registo(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Conta criada para {username}!')
+            print("SUCESSO: Utilizador guardado!")  # Vais ver isto no terminal
             return redirect('login')
+        else:
+            # Isto vai mostrar no terminal do PyCharm o ERRO exato da validação
+            print("ERRO NO FORMULÁRIO:", form.errors)
     else:
         form = UserCreationForm()
-    return render(request, 'registo.html', {'form': form})
+
+    return render(request, 'registration/registo.html', {'form': form})
