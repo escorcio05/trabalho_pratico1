@@ -5,12 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e0c2cf0-6828-432f-861a-8ad6f9633a19" name="Changes" comment="simbolo">
-      <change beforePath="$PROJECT_DIR$/.idea/Projeto_TPW.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Projeto_TPW.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/detalhe_filme.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/detalhe_filme.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/static/content/script.js" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/static/content/script.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/db.sqlite3" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,7 +127,7 @@
       <workItem from="1775560137055" duration="1234000" />
       <workItem from="1775567353489" duration="15990000" />
       <workItem from="1775652745309" duration="94000" />
-      <workItem from="1775652956748" duration="1121000" />
+      <workItem from="1775652956748" duration="2307000" />
     </task>
     <task id="LOCAL-00001" summary="Again">
       <option name="closed" value="true" />

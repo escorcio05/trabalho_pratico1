@@ -1,4 +1,8 @@
-{% extends "layout.html" %} {% load static %} {% block content %} <div class="movie-card" style="margin-top: 20px;">
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="movie-card" style="margin-top: 20px;">
         <div class="row">
             <div class="col-md-3">
                 {% if filme.cartaz %}
@@ -15,13 +19,13 @@
 
                 <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
                     <div class="sistema-classificacao">
-                        <span class="estrela" data-valor="1">★</span>
-                        <span class="estrela" data-valor="2">★</span>
-                        <span class="estrela" data-valor="3">★</span>
-                        <span class="estrela" data-valor="4">★</span>
-                        <span class="estrela" data-valor="5">★</span>
+                        <span class="estrela {% if nota_user >= 1 %}preenchida{% endif %}" data-valor="1">★</span>
+                        <span class="estrela {% if nota_user >= 2 %}preenchida{% endif %}" data-valor="2">★</span>
+                        <span class="estrela {% if nota_user >= 3 %}preenchida{% endif %}" data-valor="3">★</span>
+                        <span class="estrela {% if nota_user >= 4 %}preenchida{% endif %}" data-valor="4">★</span>
+                        <span class="estrela {% if nota_user >= 5 %}preenchida{% endif %}" data-valor="5">★</span>
                     </div>
-                    <span style="color: #666; font-size: 1.2em;">Nota: <strong id="nota-escolhida" style="color: #f5c518;">0</strong>/5</span>
+                    <span style="color: #666; font-size: 1.2em;">Nota: <strong id="nota-escolhida" style="color: #f5c518;">{{ nota_user|default:0 }}</strong>/5</span>
                 </div>
 
                 {% if filme.sinopse %}
@@ -30,7 +34,10 @@
 
                 <div style="margin: 30px 0; background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333;">
                     <h4 style="color: #f5c518; margin-bottom: 15px;">Deixa a tua Crítica</h4>
-                    {% if user.is_authenticated %} <form method="POST"> {% csrf_token %} <input type="hidden" name="nota" id="input-nota" value="{{ nota_user }}">
+                    {% if user.is_authenticated %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="nota" id="input-nota" value="{{ nota_user|default:0 }}">
 
                             <textarea name="comentario" class="form-control" rows="3"
                                       placeholder="O que achaste deste filme?"
@@ -43,7 +50,8 @@
                     {% endif %}
 
                     <div style="margin-top: 20px; max-height: 250px; overflow-y: auto;">
-                        {% for av in avaliacoes %} <div style="border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
+                        {% for av in avaliacoes %}
+                            <div style="border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
                                 <strong style="color: #f5c518;">{{ av.utilizador.username }}</strong>
                                 <span style="color: #666; font-size: 0.9em;">({{ av.nota }}/5 ★)</span>
                                 <p style="margin: 2px 0; color: #ccc;">{{ av.comentario }}</p>
@@ -54,6 +62,7 @@
                         {% endfor %}
                     </div>
                 </div>
+
                 <hr style="border-color: #333;">
 
                 <p style="font-size: 1.2em;"><strong>Realizador:</strong> <span style="color: #4da6ff;">{{ filme.realizador.nome }}</span></p>
