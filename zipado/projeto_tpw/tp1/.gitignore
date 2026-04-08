@@ -1,5 +1,6 @@
 # Base de dados local
 db.sqlite3
+gerar_resumo.py
 
 # Pastas de IDEs (como o erro que tiveste com o .idea)
 .idea/
