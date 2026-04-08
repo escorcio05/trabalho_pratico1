@@ -1,0 +1,7 @@
+# Base de dados local
+db.sqlite3
+
+# Pastas de IDEs (como o erro que tiveste com o .idea)
+.idea/
+__pycache__/
+*.pyc
