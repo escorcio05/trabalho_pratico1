@@ -46,29 +46,24 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 $(document).ready(function() {
-    // Verifica se o campo do realizador existe na página atual antes de ativar o Select2
-    if ($('#id_realizador').length) {
+    console.log("DOM pronto, a carregar Select2..."); // Debug para veres no F12
 
-        // Ativa o Select2 para o Realizador
-        $('#id_realizador').select2({
-            tags: true,
-            placeholder: "Seleciona da lista ou escreve um novo...",
-            allowClear: true
-        });
-
-        // Ativa o Select2 para o Género
-        $('#id_genero').select2({
-            tags: true,
-            placeholder: "Seleciona da lista ou escreve um novo...",
-            allowClear: true
-        });
-
-        // Ativa o Select2 para os Atores
-        $('#id_atores').select2({
-            tags: true,
-            placeholder: "Seleciona ou escreve novos atores separando por vírgulas...",
-            tokenSeparators: [',']
-        });
-
+    // Função para aplicar Select2
+    function ativarSelect2(seletor, placeholder) {
+        if ($(seletor).length) {
+            $(seletor).select2({
+                tags: true,
+                placeholder: placeholder,
+                allowClear: true,
+                width: '100%', // Garante que não fica esmagado
+                tokenSeparators: [',']
+            });
+            console.log("Select2 aplicado a: " + seletor);
+        }
     }
+
+    // Tenta aplicar aos IDs padrão do Django
+    ativarSelect2('#id_realizador', "Seleciona ou escreve o realizador...");
+    ativarSelect2('#id_genero', "Seleciona ou escreve o género...");
+    ativarSelect2('#id_atores', "Escreve os atores...");
 });
