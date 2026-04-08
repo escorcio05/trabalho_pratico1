@@ -2,29 +2,29 @@
 {% load static %}
 
 {% block content %}
-<!-- Carregar o CSS do Select2 -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="movie-card" style="max-width: 600px; margin: 30px auto;">
-    <h2 class="section-title">Adicionar Novo Filme</h2>
+    <h1>{% if editando %}Editar Filme: {{ form.instance.titulo }}{% else %}Adicionar Novo Filme{% endif %}</h1>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         {{ form.as_p }}
 
         <div style="display: flex; gap: 10px; margin-top: 30px;">
-            <button type="submit" class="btn btn-warning" style="flex: 1; padding: 10px; font-size: 16px;">Guardar</button>
-            <a href="{% url 'lista_filmes' %}" class="btn" style="flex: 1; background-color: #333; color: white; border: 1px solid #555; text-align: center; text-decoration: none; padding: 10px; font-size: 16px;">Cancelar</a>
+            <button type="submit" class="btn btn-warning" style="flex: 1; padding: 10px; font-size: 16px;">
+                {% if editando %}Guardar Alterações{% else %}Adicionar Filme{% endif %}
+            </button>
+            <a href="{% url 'lista_filmes' %}" class="btn" style="flex: 1; background-color: #333; color: white; border: 1px solid #555; text-align: center; text-decoration: none; padding: 10px; font-size: 16px;">
+                Cancelar
+            </a>
         </div>
     </form>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- O jQuery já foi carregado pelo layout.html, por isso chamamos logo o Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- Carregar o nosso próprio JavaScript (script.js) -->
 <script src="{% static 'content/script.js' %}"></script>
 {% endblock %}

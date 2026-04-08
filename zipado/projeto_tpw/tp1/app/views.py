@@ -7,6 +7,7 @@ from .forms import RegistoForm
 from django.contrib.auth.decorators import user_passes_test
 from .forms import FilmeForm
 from .models import Filme, Realizador, Ator
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 
 # 1. Listagem, Pesquisa e Ordenação (Tudo numa só função)
@@ -93,7 +94,6 @@ def is_superuser(user):
 
 
 @user_passes_test(is_superuser)
-@user_passes_test(is_superuser)
 def adicionar_filme(request):
     if request.method == 'POST':
         dados = request.POST.copy() # Criamos uma cópia para poder mexer
@@ -130,3 +130,43 @@ def adicionar_filme(request):
         form = FilmeForm()
 
     return render(request, 'adicionar_filme.html', {'form': form})
+
+
+def e_staff(user):
+    return user.is_staff
+
+
+@login_required
+@user_passes_test(e_staff)
+def editar_filme(request, id):
+    filme = get_object_or_404(Filme, id=id)  # Vai buscar o filme ou dá erro 404
+
+    if request.method == 'POST':
+        dados = request.POST.copy()
+
+        # --- REUTILIZA A LÓGICA DE TRATAR REALIZADOR E ATORES ---
+        realizador_val = dados.get('realizador')
+        if realizador_val and not realizador_val.isdigit():
+            obj, _ = Realizador.objects.get_or_create(nome=realizador_val)
+            dados['realizador'] = str(obj.id)
+
+        atores_vals = dados.getlist('atores')
+        novos_ids = []
+        for val in atores_vals:
+            if val.isdigit():
+                novos_ids.append(val)
+            else:
+                obj, _ = Ator.objects.get_or_create(nome=val)
+                novos_ids.append(str(obj.id))
+        dados.setlist('atores', novos_ids)
+
+        # O segredo está no instance=filme
+        form = FilmeForm(dados, request.FILES, instance=filme)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_filmes')  # Volta para o TEU layout
+    else:
+        # Quando abre a página, o form já vem com os dados do filme
+        form = FilmeForm(instance=filme)
+
+    return render(request, 'adicionar_filme.html', {'form': form, 'editando': True})

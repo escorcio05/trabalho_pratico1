@@ -3,6 +3,15 @@
 
 {% block content %}
     <div class="movie-card" style="margin-top: 20px;">
+        <h2>
+            {{ filme.titulo }}
+
+            {% if user.is_staff %}
+                <a href="{% url 'editar_filme' filme.id %}">
+                    <button type="button" class="btn-editar">Editar Filme</button>
+                </a>
+            {% endif %}
+        </h2>
         <div class="row">
             <div class="col-md-3">
                 {% if filme.cartaz %}

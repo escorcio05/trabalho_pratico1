@@ -8,6 +8,7 @@ urlpatterns = [
     path('filme/<int:filme_id>/', views.detalhe_filme, name='detalhe_filme'),
 
     path('filme/adicionar/', views.adicionar_filme, name='adicionar_filme'),
+    path('editar-filme/<int:id>/', views.editar_filme, name='editar_filme'),
 
     # Rota de Registo (a que criámos na views.py)
     # Correto: apenas o nome da função, sem parênteses e sem template_name aqui
