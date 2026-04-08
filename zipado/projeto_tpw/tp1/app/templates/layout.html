@@ -40,11 +40,27 @@
     </nav>
 
     <div class="container">
+        <!-- Feedback (Mensagens Django) -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible" style="margin-top: 20px;">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Conteúdo Injetado (Apenas 1 vez!) -->
         {% block content %}
         {% endblock %}
     </div>
 
+    <!-- (Restante código do fim do layout) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <!-- NOVO: Bloco para injetar scripts no fim de cada página -->
+    {% block scripts %}
+    {% endblock %}
 </body>
 </html>

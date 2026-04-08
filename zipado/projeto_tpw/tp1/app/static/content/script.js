@@ -44,3 +44,31 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+$(document).ready(function() {
+    // Verifica se o campo do realizador existe na página atual antes de ativar o Select2
+    if ($('#id_realizador').length) {
+
+        // Ativa o Select2 para o Realizador
+        $('#id_realizador').select2({
+            tags: true,
+            placeholder: "Seleciona da lista ou escreve um novo...",
+            allowClear: true
+        });
+
+        // Ativa o Select2 para o Género
+        $('#id_genero').select2({
+            tags: true,
+            placeholder: "Seleciona da lista ou escreve um novo...",
+            allowClear: true
+        });
+
+        // Ativa o Select2 para os Atores
+        $('#id_atores').select2({
+            tags: true,
+            placeholder: "Seleciona ou escreve novos atores separando por vírgulas...",
+            tokenSeparators: [',']
+        });
+
+    }
+});

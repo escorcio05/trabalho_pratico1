@@ -4,6 +4,10 @@ from django.contrib import messages
 from .models import Filme, Avaliacao
 from .forms import PesquisaFilmeForm
 from .forms import RegistoForm
+from django.contrib.auth.decorators import user_passes_test
+from .forms import FilmeForm
+from .models import Filme, Realizador, Ator
+
 
 # 1. Listagem, Pesquisa e Ordenação (Tudo numa só função)
 def lista_filmes(request):
@@ -82,3 +86,47 @@ def registo(request):
         form = RegistoForm()
 
     return render(request, 'registration/registo.html', {'form': form})
+
+
+def is_superuser(user):
+    return user.is_superuser
+
+
+@user_passes_test(is_superuser)
+@user_passes_test(is_superuser)
+def adicionar_filme(request):
+    if request.method == 'POST':
+        dados = request.POST.copy() # Criamos uma cópia para poder mexer
+
+        # --- TRATAR REALIZADOR ---
+        realizador_val = dados.get('realizador')
+        if realizador_val and not realizador_val.isdigit():
+            # Se for nome, cria na BD e troca pelo ID
+            obj, _ = Realizador.objects.get_or_create(nome=realizador_val)
+            dados['realizador'] = str(obj.id)
+
+        # --- TRATAR ATORES ---
+        atores_vals = dados.getlist('atores')
+        novos_atores_ids = []
+        for val in atores_vals:
+            if val.isdigit():
+                novos_atores_ids.append(val)
+            else:
+                # Se for um nome novo, cria e guarda o ID
+                obj, _ = Ator.objects.get_or_create(nome=val)
+                novos_atores_ids.append(str(obj.id))
+        dados.setlist('atores', novos_atores_ids)
+
+        # AGORA SIM, passamos os dados com IDs para o Form
+        form = FilmeForm(dados, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Filme guardado!')
+            return redirect('lista_filmes')
+        else:
+            # Se der erro, o print ajuda-te a ver no terminal o que falhou
+            print(form.errors)
+    else:
+        form = FilmeForm()
+
+    return render(request, 'adicionar_filme.html', {'form': form})

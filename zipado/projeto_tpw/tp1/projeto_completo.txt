@@ -136,12 +136,18 @@ FICHEIRO: .\app\admin.py
 ==================================================
 
 from django.contrib import admin
-from app.models import Realizador, Ator, Filme, Genero
+from app.models import Realizador, Ator, Filme, Genero, Avaliacao
 
 admin.site.register(Realizador)
 admin.site.register(Ator)
 admin.site.register(Filme)
 admin.site.register(Genero)
+
+@admin.register(Avaliacao)
+class AvaliacaoAdmin(admin.ModelAdmin):
+    list_display = ('utilizador', 'filme', 'nota', 'data_postagem')
+    list_filter = ('nota', 'filme')
+
 
 
 ==================================================
@@ -163,7 +169,7 @@ FICHEIRO: .\app\forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
+from .models import Filme, Realizador, Ator, Genero
 class PesquisaFilmeForm(forms.Form):
     query = forms.CharField(
         label='', # Removemos o label para ficar igual à imagem
@@ -186,6 +192,56 @@ class RegistoForm(UserCreationForm):
         model = User
         # Definimos a ordem: o que aparece primeiro no site
         fields = ("username", "first_name", "last_name", "email")
+
+class FilmeForm(forms.ModelForm):
+    class Meta:
+        model = Filme
+        # Voltamos a usar os campos originais do modelo
+        fields =['titulo', 'data_lancamento', 'sinopse', 'cartaz', 'realizador', 'atores', 'genero']
+        widgets = {
+            'data_lancamento': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
+            'titulo': 'Título',
+            'data_lancamento': 'Data de Lançamento',
+            'sinopse': 'Sinopse',
+            'cartaz': 'URL do Cartaz',
+            'realizador': 'Realizador',
+            'atores': 'Atores',
+            'genero': 'Género',
+        }
+
+    # Esta função mágica faz a conversão dos teus textos para modelos reais na Base de Dados
+    def save(self, commit=True):
+        # 1. Guardar a estrutura base do filme (sem comprometer ainda na BD)
+        filme = super().save(commit=False)
+
+        # 2. Obter ou criar Realizador
+        realizador_str = self.cleaned_data.get('nome_realizador')
+        realizador_obj, created = Realizador.objects.get_or_create(nome=realizador_str)
+        filme.realizador = realizador_obj
+
+        # 3. Obter ou criar Género
+        genero_str = self.cleaned_data.get('nome_genero')
+        if genero_str:
+            genero_obj, created = Genero.objects.get_or_create(nome=genero_str)
+            filme.genero = genero_obj
+
+        if commit:
+            filme.save() # Guarda o filme na Base de Dados para obter um ID
+
+            # 4. Obter ou criar Atores (só podem ser associados DEPOIS do filme estar guardado)
+            atores_str = self.cleaned_data.get('nomes_atores')
+            if atores_str:
+                # Divide a string pelas vírgulas (Ex: "Ator 1, Ator 2" ->["Ator 1", " Ator 2"])
+                lista_atores = atores_str.split(',')
+                for nome in lista_atores:
+                    nome = nome.strip() # Remove espaços vazios antes e depois
+                    if nome:
+                        ator_obj, created = Ator.objects.get_or_create(nome=nome)
+                        filme.atores.add(ator_obj) # Associa
+
+        return filme
 
 
 ==================================================
@@ -239,6 +295,7 @@ class Avaliacao(models.Model):
         return f"{self.utilizador.username} - {self.filme.titulo}: {self.nota}"
 
 
+
 ==================================================
 FICHEIRO: .\app\tests.py
 ==================================================
@@ -262,6 +319,8 @@ urlpatterns = [
     path('', views.lista_filmes, name='lista_filmes'),
     path('filme/<int:filme_id>/', views.detalhe_filme, name='detalhe_filme'),
 
+    path('filme/adicionar/', views.adicionar_filme, name='adicionar_filme'),
+
     # Rota de Registo (a que criámos na views.py)
     # Correto: apenas o nome da função, sem parênteses e sem template_name aqui
     path('registo/', views.registo, name='registo'),
@@ -281,6 +340,10 @@ from django.contrib import messages
 from .models import Filme, Avaliacao
 from .forms import PesquisaFilmeForm
 from .forms import RegistoForm
+from django.contrib.auth.decorators import user_passes_test
+from .forms import FilmeForm
+from .models import Filme, Realizador, Ator, Genero
+
 
 # 1. Listagem, Pesquisa e Ordenação (Tudo numa só função)
 def lista_filmes(request):
@@ -359,6 +422,65 @@ def registo(request):
         form = RegistoForm()
 
     return render(request, 'registration/registo.html', {'form': form})
+
+
+def is_superuser(user):
+    return user.is_superuser
+
+
+@user_passes_test(is_superuser)
+def adicionar_filme(request):
+    if request.method == 'POST':
+        dados = request.POST.copy()  # Cópia para podermos alterar os dados
+
+        # 1. Processar Realizador (Aceita apenas 1)
+        realizador_val = dados.get('realizador')
+        if realizador_val:
+            try:
+                # Tenta ver se é um ID que já existe
+                obj = Realizador.objects.get(id=int(realizador_val))
+                dados['realizador'] = str(obj.id)
+            except (ValueError, Realizador.DoesNotExist):
+                # Se não existir (é um texto novo), cria na BD
+                obj, created = Realizador.objects.get_or_create(nome=realizador_val)
+                dados['realizador'] = str(obj.id)
+
+        # 2. Processar Género (Aceita apenas 1)
+        genero_val = dados.get('genero')
+        if genero_val:
+            try:
+                obj = Genero.objects.get(id=int(genero_val))
+                dados['genero'] = str(obj.id)
+            except (ValueError, Genero.DoesNotExist):
+                obj, created = Genero.objects.get_or_create(nome=genero_val)
+                dados['genero'] = str(obj.id)
+
+        # 3. Processar Atores (Aceita Vários - getlist)
+        atores_vals = dados.getlist('atores')
+        novos_atores_ids = []
+        for val in atores_vals:
+            try:
+                obj = Ator.objects.get(id=int(val))
+                novos_atores_ids.append(str(obj.id))
+            except (ValueError, Ator.DoesNotExist):
+                obj, created = Ator.objects.get_or_create(nome=val)
+                novos_atores_ids.append(str(obj.id))
+
+        # Colocar a lista de IDs corretos de volta no POST
+        dados.setlist('atores', novos_atores_ids)
+
+        # Agora validamos o formulário
+        form = FilmeForm(dados)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Filme adicionado com sucesso!')
+            return redirect('lista_filmes')
+        else:
+            print("Erros do formulário:", form.errors)
+    else:
+        form = FilmeForm()
+
+    return render(request, 'adicionar_filme.html', {'form': form})
 
 
 ==================================================
@@ -643,6 +765,34 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+$(document).ready(function() {
+    // Verifica se o campo do realizador existe na página atual antes de ativar o Select2
+    if ($('#id_realizador').length) {
+
+        // Ativa o Select2 para o Realizador
+        $('#id_realizador').select2({
+            tags: true,
+            placeholder: "Seleciona da lista ou escreve um novo...",
+            allowClear: true
+        });
+
+        // Ativa o Select2 para o Género
+        $('#id_genero').select2({
+            tags: true,
+            placeholder: "Seleciona da lista ou escreve um novo...",
+            allowClear: true
+        });
+
+        // Ativa o Select2 para os Atores
+        $('#id_atores').select2({
+            tags: true,
+            placeholder: "Seleciona ou escreve novos atores separando por vírgulas...",
+            tokenSeparators: [',']
+        });
+
+    }
+});
+
 
 ==================================================
 FICHEIRO: .\app\static\content\style.css
@@ -762,6 +912,122 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
     display: inline-block;
 }/* Obrigatório para a rotação funcionar bem */
 
+/* Página adicionar filme*/
+
+.movie-card label {
+    color: #f5c518;
+    font-weight: bold;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.movie-card input,
+.movie-card textarea,
+.movie-card select {
+    width: 100%;
+    padding: 8px;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: white;
+    box-sizing: border-box;
+}
+
+.movie-card .helptext {
+    font-size: 0.85em;
+    color: #888;
+    display: block;
+    margin-top: 3px;
+}
+
+/* =========================================
+   Estilos para o Select2 (Dark Mode) - Adicionar Filme
+   ========================================= */
+
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: #2a2a2a !important;
+    border: 1px solid #444 !important;
+    color: white !important;
+    padding: 4px;
+    min-height: 40px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered,
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    color: white !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #444 !important;
+    border: 1px solid #555 !important;
+    padding: 3px 8px;
+    margin-top: 4px;
+}
+
+.select2-dropdown {
+    background-color: #2a2a2a !important;
+    border: 1px solid #444 !important;
+}
+
+.select2-container--default .select2-results__option {
+    color: white !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: #444 !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #f5c518 !important;
+    color: black !important;
+}
+
+.select2-search__field {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 6px;
+}
+
+
+
+==================================================
+FICHEIRO: .\app\templates\adicionar_filme.html
+==================================================
+
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Carregar o CSS do Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="movie-card" style="max-width: 600px; margin: 30px auto;">
+    <h2 class="section-title">Adicionar Novo Filme</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button type="submit" class="btn btn-warning" style="flex: 1; padding: 10px; font-size: 16px;">Guardar</button>
+            <a href="{% url 'lista_filmes' %}" class="btn" style="flex: 1; background-color: #333; color: white; border: 1px solid #555; text-align: center; text-decoration: none; padding: 10px; font-size: 16px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- O jQuery já foi carregado pelo layout.html, por isso chamamos logo o Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Carregar o nosso próprio JavaScript (script.js) -->
+<script src="{% static 'content/script.js' %}"></script>
+{% endblock %}
 
 
 ==================================================
@@ -895,12 +1161,28 @@ FICHEIRO: .\app\templates\layout.html
     </nav>
 
     <div class="container">
+        <!-- Feedback (Mensagens Django) -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible" style="margin-top: 20px;">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Conteúdo Injetado (Apenas 1 vez!) -->
         {% block content %}
         {% endblock %}
     </div>
 
+    <!-- (Restante código do fim do layout) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <!-- NOVO: Bloco para injetar scripts no fim de cada página -->
+    {% block scripts %}
+    {% endblock %}
 </body>
 </html>
 
@@ -912,7 +1194,14 @@ FICHEIRO: .\app\templates\lista_filmes.html
 {% extends "layout.html" %}
 
 {% block content %}
-    <h2 class="section-title">Filmes em Destaque</h2>
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; border: none; padding: 0;">Filmes em Destaque</h2>
+        {% if user.is_superuser %}
+            <a href="{% url 'adicionar_filme' %}" class="btn btn-warning btn-sm" style="font-weight: bold; padding: 8px 15px;">
+                <i class="fas fa-plus"></i> Adicionar Filme
+            </a>
+        {% endif %}
+    </div>
 
     <div style="margin-bottom: 30px;">
     <form method="GET" action="{% url 'lista_filmes' %}"

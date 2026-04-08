@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Filme, Realizador, Ator
 
 class PesquisaFilmeForm(forms.Form):
     query = forms.CharField(
@@ -24,3 +25,13 @@ class RegistoForm(UserCreationForm):
         model = User
         # Definimos a ordem: o que aparece primeiro no site
         fields = ("username", "first_name", "last_name", "email")
+
+class FilmeForm(forms.ModelForm):
+    class Meta:
+        model = Filme
+        fields = ['titulo', 'data_lancamento', 'sinopse', 'cartaz', 'realizador', 'atores']
+        widgets = {
+            'data_lancamento': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    # Esta função mágica faz a conversão dos teus textos para modelos reais na Base de Dados
