@@ -1,8 +1,4 @@
-{% extends "layout.html" %}
-{% load static %}
-
-{% block content %}
-    <div class="movie-card" style="margin-top: 20px;">
+{% extends "layout.html" %} {% load static %} {% block content %} <div class="movie-card" style="margin-top: 20px;">
         <div class="row">
             <div class="col-md-3">
                 {% if filme.cartaz %}
@@ -32,6 +28,32 @@
                     <p style="font-size: 1.2em; line-height: 1.6; margin-bottom: 20px;">{{ filme.sinopse }}</p>
                 {% endif %}
 
+                <div style="margin: 30px 0; background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333;">
+                    <h4 style="color: #f5c518; margin-bottom: 15px;">Deixa a tua Crítica</h4>
+                    {% if user.is_authenticated %} <form method="POST"> {% csrf_token %} <input type="hidden" name="nota" id="input-nota" value="{{ nota_user }}">
+
+                            <textarea name="comentario" class="form-control" rows="3"
+                                      placeholder="O que achaste deste filme?"
+                                      style="background: #222; color: white; border: 1px solid #444; margin-bottom: 10px;">{{ comentario_user }}</textarea>
+
+                            <button type="submit" class="btn btn-warning btn-sm">Publicar Comentário</button>
+                        </form>
+                    {% else %}
+                        <p style="color: #888;">Faz <a href="{% url 'login' %}" style="color: #f5c518;">login</a> para comentar.</p>
+                    {% endif %}
+
+                    <div style="margin-top: 20px; max-height: 250px; overflow-y: auto;">
+                        {% for av in avaliacoes %} <div style="border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
+                                <strong style="color: #f5c518;">{{ av.utilizador.username }}</strong>
+                                <span style="color: #666; font-size: 0.9em;">({{ av.nota }}/5 ★)</span>
+                                <p style="margin: 2px 0; color: #ccc;">{{ av.comentario }}</p>
+                                <small style="color: #444;">{{ av.data_postagem|date:"d/m/Y" }}</small>
+                            </div>
+                        {% empty %}
+                            <p style="color: #666;">Ainda não há comentários para este filme.</p>
+                        {% endfor %}
+                    </div>
+                </div>
                 <hr style="border-color: #333;">
 
                 <p style="font-size: 1.2em;"><strong>Realizador:</strong> <span style="color: #4da6ff;">{{ filme.realizador.nome }}</span></p>

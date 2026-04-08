@@ -33,21 +33,38 @@ def lista_filmes(request):
 # 2. Detalhes e Avaliação
 def detalhe_filme(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
-    nota_user = None
+    avaliacoes_gerais = filme.avaliacoes.all().order_by('-data_postagem')  # Todas as críticas
+    nota_user = 0
+    comentario_user = ""
 
     if request.user.is_authenticated:
         if request.method == "POST":
+            # Captura os dados do formulário HTML
             nova_nota = request.POST.get('nota')
-            Avaliacao.objects.update_or_create(
-                filme=filme, utilizador=request.user,
-                defaults={'nota': int(nova_nota)}
-            )
+            novo_comentario = request.POST.get('comentario')
+
+            if nova_nota:
+                Avaliacao.objects.update_or_create(
+                    filme=filme,
+                    utilizador=request.user,
+                    defaults={
+                        'nota': int(nova_nota),
+                        'comentario': novo_comentario
+                    }
+                )
+                return redirect('detalhe_filme', filme_id=filme.id)
+
+        # Procura se o utilizador já avaliou este filme
         av = Avaliacao.objects.filter(filme=filme, utilizador=request.user).first()
-        nota_user = av.nota if av else None
+        if av:
+            nota_user = av.nota
+            comentario_user = av.comentario
 
     return render(request, 'detalhe_filme.html', {
         'filme': filme,
-        'nota_user': nota_user
+        'avaliacoes': avaliacoes_gerais,
+        'nota_user': nota_user,
+        'comentario_user': comentario_user
     })
 
 # 3. Registo de Utilizador

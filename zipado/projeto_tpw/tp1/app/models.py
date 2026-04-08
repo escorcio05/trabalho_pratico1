@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Genero(models.Model):
     nome = models.CharField(max_length=50)
@@ -35,7 +36,8 @@ class Avaliacao(models.Model):
     filme = models.ForeignKey(Filme, on_delete=models.CASCADE, related_name='avaliacoes')
     utilizador = models.ForeignKey(User, on_delete=models.CASCADE)
     nota = models.IntegerField(choices=[(i, i) for i in range(1, 6)]) # 1 a 5 estrelas
-
+    comentario = models.TextField(blank=True, null=True)
+    data_postagem = models.DateTimeField(default=timezone.now)
     class Meta:
         unique_together = ('filme', 'utilizador') # Um user só dá uma nota por filme
 
