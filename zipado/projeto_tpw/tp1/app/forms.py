@@ -29,9 +29,35 @@ class RegistoForm(UserCreationForm):
 class FilmeForm(forms.ModelForm):
     class Meta:
         model = Filme
-        fields = ['titulo', 'data_lancamento', 'sinopse', 'cartaz', 'realizador', 'atores']
+        fields = ['titulo', 'data_lancamento', 'sinopse', 'cartaz', 'realizador', 'atores', 'generos']
         widgets = {
             'data_lancamento': forms.DateInput(attrs={'type': 'date'}),
         }
 
-    # Esta função mágica faz a conversão dos teus textos para modelos reais na Base de Dados
+
+class EditarPerfilForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Nova password (deixa em branco para manter a atual)'}),
+        required=False,
+        label="Redefinir Password"
+    )
+
+    class Meta:
+        model = User
+        # Adicionados os campos de nome aqui:
+        fields = ['username', 'first_name', 'last_name', 'email']
+        labels = {
+            'username': 'Nome de Utilizador',
+            'first_name': 'Primeiro Nome',
+            'last_name': 'Último Nome',
+            'email': 'E-mail',
+        }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        nova_password = self.cleaned_data.get('password')
+        if nova_password:
+            user.set_password(nova_password)
+        if commit:
+            user.save()
+        return user

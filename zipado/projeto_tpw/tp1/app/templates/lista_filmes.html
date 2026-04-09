@@ -11,70 +11,68 @@
     </div>
 
     <div style="margin-bottom: 30px;">
-    <form method="GET" action="{% url 'lista_filmes' %}"
-          style="display: flex; align-items: center; background: white; border-radius: 50px; padding: 5px 10px; overflow: hidden; width: 100%; max-width: 1000px; margin: 0 auto;">
+        <form method="GET" action="{% url 'lista_filmes' %}"
+              style="display: flex; align-items: center; background: white; border-radius: 50px; padding: 5px 10px; overflow: hidden; width: 100%; max-width: 1000px; margin: 0 auto;">
 
-        <div style="flex-grow: 1; padding-left: 15px;">
-            {{ form.query }}
-        </div>
+            <div style="flex-grow: 1; padding-left: 15px;">
+                {{ form.query }}
+            </div>
 
-        <a href="{% url 'lista_filmes' %}"
-           style="text-decoration: none; color: #999; font-size: 20px; padding: 0 15px; font-family: sans-serif;"
-           title="Limpar">
-           &times;
-        </a>
+            <a href="{% url 'lista_filmes' %}"
+               style="text-decoration: none; color: #999; font-size: 20px; padding: 0 15px; font-family: sans-serif;"
+               title="Limpar">
+               &times;
+            </a>
 
-        <button type="submit" class="btn"
-                style="background: linear-gradient(90deg, black 0%, #f5c518 100%); color: white; border-radius: 50px; padding: 10px 30px; border: none; font-weight: bold;">
-            Search
-        </button>
-
-    </form>
+            <button type="submit" class="btn"
+                    style="background: linear-gradient(90deg, black 0%, #f5c518 100%); color: white; border-radius: 50px; padding: 10px 30px; border: none; font-weight: bold;">
+                Search
+            </button>
+        </form>
     </div>
 
     <div style="margin-bottom: 20px; background: #1f1f1f; padding: 10px; border-radius: 8px; border: 1px solid #333; display: flex; align-items: center; gap: 10px;">
         <span style="color: #888;">Ordenar por:</span>
-
-        <a href="?{% if 'recentes' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'recentes' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=recentes{% for f in filtros_ativos %}{% if f != 'antigos' %}&ordenar={{ f }}{% endif %}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
-           class="btn btn-xs {% if 'recentes' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
-           style="width: auto; margin: 0; {% if 'recentes' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
-           Mais Recentes
-        </a>
-
-        <a href="?{% if 'antigos' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'antigos' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=antigos{% for f in filtros_ativos %}{% if f != 'recentes' %}&ordenar={{ f }}{% endif %}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
-           class="btn btn-xs {% if 'antigos' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
-           style="width: auto; margin: 0; {% if 'antigos' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
-           Mais Antigos
-        </a>
-
-        <a href="?{% if 'titulo' in filtros_ativos %}ordenar={% for f in filtros_ativos %}{% if f != 'titulo' %}{{ f }}&ordenar={% endif %}{% endfor %}{% else %}ordenar=titulo{% for f in filtros_ativos %}&ordenar={{ f }}{% endfor %}{% endif %}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
-           class="btn btn-xs {% if 'titulo' in filtros_ativos %}btn-warning{% else %}btn-default{% endif %}"
-           style="width: auto; margin: 0; {% if 'titulo' in filtros_ativos %}color: black; font-weight: bold;{% endif %}">
-           Título (A-Z)
-        </a>
+        <a href="?ordenar=recentes{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'recentes' %}btn-warning{% else %}btn-default{% endif %}">Mais Recentes</a>
+        <a href="?ordenar=antigos{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'antigos' %}btn-warning{% else %}btn-default{% endif %}">Mais Antigos</a>
+        <a href="?ordenar=titulo{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-xs {% if ordem_atual == 'titulo' %}btn-warning{% else %}btn-default{% endif %}">Título (A-Z)</a>
     </div>
 
     <div class="row">
     {% for filme in filmes %}
         <div class="col-md-6">
-            <div class="movie-card" style="display: flex; gap: 20px;">
+            <div class="movie-card" style="display: flex; gap: 20px; position: relative; margin-bottom: 20px; background: #1a1a1a; padding: 15px; border-radius: 8px;">
+                {% if user.is_authenticated and not user.is_superuser %}
+                <div class="movie-actions" style="position: absolute; top: 15px; right: 15px; z-index: 10; display: flex; gap: 15px;">
+                    <a href="{% url 'toggle_guardado' filme.id %}" style="text-decoration: none;">
+                        <i class="{% if filme.id in ids_guardados %}fas{% else %}far{% endif %} fa-bookmark" style="color: white; font-size: 20px;"></i>
+                    </a>
+
+                    <a href="{% url 'toggle_favorito' filme.id %}" style="text-decoration: none;">
+                        <i class="{% if filme.id in ids_favoritos %}fas{% else %}far{% endif %} fa-heart"
+                           style="font-size: 20px; {% if filme.id in ids_favoritos %}color: #f39c12;{% else %}color: white;{% endif %}"></i>
+                    </a>
+                </div>
+                {% endif %}
+
                 {% if filme.cartaz %}
                     <a href="{% url 'detalhe_filme' filme.id %}">
-                        <img src="{{ filme.cartaz }}" alt="{{ filme.titulo }}" class="movie-poster">
+                        <img src="{{ filme.cartaz }}" alt="{{ filme.titulo }}" class="movie-poster" style="width: 120px; border-radius: 5px;">
                     </a>
                 {% endif %}
+
                 <div>
-                    <a href="{% url 'detalhe_filme' filme.id %}" style="text-decoration: none;">
-                        <h3 class="movie-title">{{ filme.titulo }} <small style="color: #888;">({{ filme.data_lancamento|date:"Y" }})</small></h3>
-                        {% if filme.genero %}
-                            <p style="margin-top: -10px; margin-bottom: 10px;"><span class="label label-info">{{ filme.genero.nome }}</span></p>
-                        {% endif %}
+                    <a href="{% url 'detalhe_filme' filme.id %}" style="text-decoration: none; color: inherit;">
+                        <h3 class="movie-title" style="margin-top: 0;">{{ filme.titulo }} <small style="color: #888;">({{ filme.data_lancamento|date:"Y" }})</small></h3>
                     </a>
                     <p><strong>Realizador:</strong> {{ filme.realizador.nome }}</p>
                     <p><strong>Atores:</strong> {{ filme.atores.all|join:", " }}</p>
+                    <p><strong>Géneros:</strong> {{ filme.generos.all|join:", "}}</p>
                 </div>
             </div>
         </div>
+    {% empty %}
+        <p class="text-center" style="color: #888;">Nenhum filme encontrado.</p>
     {% endfor %}
     </div>
 {% endblock %}

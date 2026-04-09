@@ -16,4 +16,13 @@ urlpatterns = [
     # Rotas de Login/Logout (usando as views prontas do Django)
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-]
+    # ... os teus outros urls ...
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+
+    path('favoritos/', views.meus_favoritos, name='meus_favoritos'),
+    path('guardados/', views.meus_guardados, name='meus_guardados'),
+    path('favorito/toggle/<int:filme_id>/', views.toggle_favorito, name='toggle_favorito'),
+    path('guardado/toggle/<int:filme_id>/', views.toggle_guardado, name='toggle_guardado'),
+
+
+    ]

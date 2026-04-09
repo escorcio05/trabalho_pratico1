@@ -19,20 +19,65 @@
                 </button>
                 <a class="navbar-brand" href="{% url 'lista_filmes' %}">MOVIEZ
                 <i class="fas fa-film icone-rolo-animado"></i></a>
-
             </div>
-            
-            <div class="collapse navbar-collapse" id="myNavbar">
-                <ul class="nav navbar-nav navbar-right">
-                    {% if user.is_authenticated %}
-                        <span class="text-white me-3">Olá, {{ user.username }}!</span>
 
-                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-warning btn-sm">Sair</button>
-                        </form>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; margin: 0;">
+                    {% if user.is_authenticated %}
+                        {% if not user.is_superuser %}
+                            <li style="list-style: none;">
+                                <a href="{% url 'meus_favoritos' %}" style="color: #f39c12; padding: 15px 15px; display: flex; align-items: center;">
+                                    <i class="fa-solid fa-heart" style="margin-right: 5px;"></i> Favoritos
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="dropdown" style="list-style: none;">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"
+                               style="display: flex; align-items: center; background: transparent !important; color: white; padding: 15px 10px; text-decoration: none;">
+                                <span style="margin-right: 10px;">{{ user.username }}</span>
+                                <span class="avatar-circle" style="margin: 0;">{{ user.username.0|upper }}</span>
+                            </a>
+
+                            <ul class="dropdown-menu" style="background-color: #ffffff; min-width: 180px;">
+                                {% if user.is_staff %}
+                                    <li>
+                                        <a href="{% url 'admin:index' %}" target="_blank" style="padding: 10px 20px; display: block; color: #d9534f; font-weight: bold;">
+                                            <i class="fas fa-database" style="width: 20px; text-align: center; margin-right: 10px;"></i> Base de Dados
+                                        </a>
+                                    </li>
+                                    <li class="divider" style="margin: 5px 0;"></li>
+                                {% endif %}
+
+                                {% if user.is_superuser %}
+                                    <li><a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a></li>
+                                {% else %}
+                                    <li>
+                                        <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; display: block;">
+                                            <i class="fas fa-cog" style="width: 20px; text-align: center; margin-right: 10px;"></i> Editar Perfil
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'meus_guardados' %}" style="padding: 10px 20px; display: block;">
+                                            <i class="fa-solid fa-bookmark" style="width: 20px; text-align: center; margin-right: 10px;"></i> Guardados
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li class="divider" style="margin: 5px 0;"></li>
+                                <li>
+                                    <form action="{% url 'logout' %}" method="post" style="margin: 0; padding: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="logout-btn" style="width: 100%; text-align: left; padding: 10px 20px; border: none; background: none; color: #d9534f;">
+                                            <i class="fas fa-door-open" style="width: 20px; text-align: center; margin-right: 10px;"></i> Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-warning btn-sm">Entrar</a>
+                        <li>
+                            <a href="{% url 'login' %}" class="btn btn-warning btn-sm btn-entrar-nav" style="margin-top: 10px;">Entrar</a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -40,7 +85,6 @@
     </nav>
 
     <div class="container">
-        <!-- Feedback (Mensagens Django) -->
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible" style="margin-top: 20px;">
@@ -50,16 +94,13 @@
             {% endfor %}
         {% endif %}
 
-        <!-- Conteúdo Injetado (Apenas 1 vez!) -->
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- (Restante código do fim do layout) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
-    <!-- NOVO: Bloco para injetar scripts no fim de cada página -->
     {% block scripts %}
     {% endblock %}
 </body>

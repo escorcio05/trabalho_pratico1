@@ -3,15 +3,6 @@
 
 {% block content %}
     <div class="movie-card" style="margin-top: 20px;">
-        <h2>
-            {{ filme.titulo }}
-
-            {% if user.is_staff %}
-                <a href="{% url 'editar_filme' filme.id %}">
-                    <button type="button" class="btn-editar">Editar Filme</button>
-                </a>
-            {% endif %}
-        </h2>
         <div class="row">
             <div class="col-md-3">
                 {% if filme.cartaz %}
@@ -20,11 +11,14 @@
             </div>
 
             <div class="col-md-9">
-                <h1 style="color: #f5c518; font-size: 3em; margin-top: 0; margin-bottom: 5px;">{{ filme.titulo }}</h1>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h1 style="color: #f5c518; font-size: 3em; margin-top: 0; margin-bottom: 5px;">{{ filme.titulo }}</h1>
+                    {% if user.is_staff %}
+                        <a href="{% url 'editar_filme' filme.id %}" class="btn btn-sm btn-default" style="margin-top: 10px;">Editar Filme</a>
+                    {% endif %}
+                </div>
+
                 <p style="color: #888; font-size: 1.1em; margin-bottom: 10px;">{{ filme.data_lancamento|date:"d M Y" }}</p>
-                {% if filme.genero %}
-                    <p style="margin-bottom: 20px;"><span class="label label-primary" style="font-size: 1em;">{{ filme.genero.nome }}</span></p>
-                {% endif %}
 
                 <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
                     <div class="sistema-classificacao">
@@ -38,32 +32,53 @@
                 </div>
 
                 {% if filme.sinopse %}
-                    <p style="font-size: 1.2em; line-height: 1.6; margin-bottom: 20px;">{{ filme.sinopse }}</p>
+                    <p style="font-size: 1.2em; line-height: 1.6; margin-bottom: 30px;">{{ filme.sinopse }}</p>
                 {% endif %}
 
-                <div style="margin: 30px 0; background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333;">
-                    <h4 style="color: #f5c518; margin-bottom: 15px;">Deixa a tua Crítica</h4>
-                    {% if user.is_authenticated %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="nota" id="input-nota" value="{{ nota_user|default:0 }}">
+                <div class="section-container" style="margin-top: 30px;">
+                    <h2 style="color: #f5c518; font-size: 22px; margin-bottom: 5px;">Ficha Técnica e Género</h2>
+                    <hr style="border-color: #333; border-width: 1px; margin-top: 0; margin-bottom: 20px;">
 
-                            <textarea name="comentario" class="form-control" rows="3"
-                                      placeholder="O que achaste deste filme?"
-                                      style="background: #222; color: white; border: 1px solid #444; margin-bottom: 10px;">{{ comentario_user }}</textarea>
+                    <div class="technical-info" style="font-size: 1.2em; line-height: 1.8;">
+                        <p><strong>Realizador:</strong> <span style="color: #4da6ff;">{{ filme.realizador.nome }}</span></p>
+                        <p><strong>Elenco:</strong> <span style="color: #4da6ff;">{{ filme.atores.all|join:", " }}</span></p>
+                        <p><strong>Géneros:</strong> <span style="color: #4da6ff;">{{ filme.generos.all|join:", " }}</span></p>
+                    </div>
+                </div>
 
-                            <button type="submit" class="btn btn-warning btn-sm">Publicar Comentário</button>
-                        </form>
-                    {% else %}
-                        <p style="color: #888;">Faz <a href="{% url 'login' %}" style="color: #f5c518;">login</a> para comentar e avaliar.</p>
-                    {% endif %}
+                <div class="section-container" style="margin-top: 40px;">
+                    <h2 style="color: #f5c518; font-size: 22px; margin-bottom: 5px;">Comentários</h2>
+                    <hr style="border-color: #333; border-width: 1px; margin-top: 0; margin-bottom: 20px;">
 
-                    <div style="margin-top: 20px; max-height: 250px; overflow-y: auto;">
+                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 30px;">
+                        <h4 style="color: #f5c518; margin-top: 0; margin-bottom: 15px;">
+                            {% if comentario_user %}Editar a tua Crítica{% else %}Deixa a tua Crítica{% endif %}
+                        </h4>
+
+                        {% if user.is_authenticated %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="nota" id="input-nota" value="{{ nota_user|default:0 }}">
+
+                                <textarea name="comentario" class="form-control" rows="3"
+                                          placeholder="O que achaste deste filme?"
+                                          style="background: #222; color: white; border: 1px solid #444; margin-bottom: 10px;">{{ comentario_user }}</textarea>
+
+                                <button type="submit" class="btn btn-warning btn-sm" style="font-weight: bold; width: 100%;">
+                                    {% if comentario_user %}Editar comentário{% else %}Publicar Comentário{% endif %}
+                                </button>
+                            </form>
+                        {% else %}
+                            <p style="color: #888;">Faz <a href="{% url 'login' %}" style="color: #f5c518;">login</a> para comentar e avaliar.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="comments-list" style="max-height: 500px; overflow-y: auto;">
                         {% for av in avaliacoes %}
-                            <div style="border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
+                            <div style="border-bottom: 1px solid #222; margin-bottom: 15px; padding-bottom: 10px;">
                                 <strong style="color: #f5c518;">{{ av.utilizador.username }}</strong>
                                 <span style="color: #666; font-size: 0.9em;">({{ av.nota }}/5 ★)</span>
-                                <p style="margin: 2px 0; color: #ccc;">{{ av.comentario }}</p>
+                                <p style="margin: 5px 0; color: #ccc; font-size: 1.1em;">{{ av.comentario }}</p>
                                 <small style="color: #444;">{{ av.data_postagem|date:"d/m/Y" }}</small>
                             </div>
                         {% empty %}
@@ -72,13 +87,10 @@
                     </div>
                 </div>
 
-                <hr style="border-color: #333;">
-
-                <p style="font-size: 1.2em;"><strong>Realizador:</strong> <span style="color: #4da6ff;">{{ filme.realizador.nome }}</span></p>
-                <p style="font-size: 1.2em;"><strong>Elenco:</strong> <span style="color: #4da6ff;">{{ filme.atores.all|join:", " }}</span></p>
-
-                <div style="margin-top: 30px;">
-                    <a href="{% url 'lista_filmes' %}" class="btn btn-warning">Voltar à Lista</a>
+                <div style="margin-top: 40px; padding-bottom: 20px;">
+                    <a href="{% url 'lista_filmes' %}" class="btn btn-default" style="background: #333; color: white; border: none;">
+                        <i class="fas fa-arrow-left"></i> Voltar à Lista
+                    </a>
                 </div>
             </div>
         </div>

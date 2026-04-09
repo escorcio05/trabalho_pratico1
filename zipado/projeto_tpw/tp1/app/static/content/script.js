@@ -46,24 +46,32 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 $(document).ready(function() {
-    console.log("DOM pronto, a carregar Select2..."); // Debug para veres no F12
+    console.log("DOM pronto, a carregar Select2...");
 
-    // Função para aplicar Select2
     function ativarSelect2(seletor, placeholder) {
         if ($(seletor).length) {
             $(seletor).select2({
                 tags: true,
                 placeholder: placeholder,
                 allowClear: true,
-                width: '100%', // Garante que não fica esmagado
-                tokenSeparators: [',']
+                width: '100%',
+                tokenSeparators: [',', ';'] // Permite separar por vírgula ou ponto e vírgula
             });
             console.log("Select2 aplicado a: " + seletor);
         }
     }
 
-    // Tenta aplicar aos IDs padrão do Django
+    // IDs PADRÃO DO DJANGO:
+
+    // 1. Realizador (Normalmente ForeignKey - Único)
     ativarSelect2('#id_realizador', "Seleciona ou escreve o realizador...");
-    ativarSelect2('#id_genero', "Seleciona ou escreve o género...");
-    ativarSelect2('#id_atores', "Escreve os atores...");
+
+    // 2. Géneros (Agora ManyToMany - Múltiplos)
+    // Nota: O Django gera 'id_generos' se o campo se chamar 'generos' no plural
+    ativarSelect2('#id_generos', "Seleciona ou escreve os géneros (ex: Ação, Drama)...");
+    ativarSelect2('#id_genero', "Seleciona ou escreve o género..."); // Backup caso o nome no model seja singular
+
+    // 3. Atores (ManyToMany - Múltiplos)
+    ativarSelect2('#id_atores', "Escreve os atores separados por vírgulas...");
 });
+

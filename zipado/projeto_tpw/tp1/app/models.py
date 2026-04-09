@@ -20,7 +20,7 @@ class Filme(models.Model):
     sinopse = models.TextField(blank=True, null=True)
     cartaz = models.URLField(max_length=500, null=True, blank=True)
     realizador = models.ForeignKey(Realizador, on_delete=models.CASCADE)
-    # ALTERADO: Agora permite múltiplos géneros
+    generos = models.ManyToManyField(Genero, related_name='filmes')
     atores = models.ManyToManyField(Ator)
 
     def __str__(self): return self.titulo
@@ -36,3 +36,20 @@ class Avaliacao(models.Model):
 
     def __str__(self):
         return f"{self.utilizador.username} - {self.filme.titulo}: {self.nota}"
+
+
+class Guardado(models.Model):
+    utilizador = models.ForeignKey(User, on_delete=models.CASCADE)
+    filme = models.ForeignKey('Filme', on_delete=models.CASCADE)
+    data_adicionado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('utilizador', 'filme') # Impede de guardar o mesmo filme duas vezes
+
+class Favorito(models.Model):
+    utilizador = models.ForeignKey(User, on_delete=models.CASCADE)
+    filme = models.ForeignKey('Filme', on_delete=models.CASCADE)
+    data_adicionado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('utilizador', 'filme')
