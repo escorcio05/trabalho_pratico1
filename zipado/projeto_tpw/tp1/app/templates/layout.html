@@ -40,18 +40,26 @@
                             </a>
 
                             <ul class="dropdown-menu" style="background-color: #ffffff; min-width: 180px;">
-                                {% if user.is_staff %}
+
+                                {% if user.is_superuser and user.is_staff %}
+                                    <li><a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a></li>
+                                {% elif user.is_staff and not user.is_superuser%}
+                                   <li>
+                                       <a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a>
+
+                                   </li>
+                                   <li>
+                                        <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; display: block;">
+                                            <i class="fas fa-cog" style="width: 20px; text-align: center; margin-right: 10px;"></i> Editar Perfil
+                                        </a>
+                                    </li>
                                     <li>
-                                        <a href="{% url 'admin:index' %}" target="_blank" style="padding: 10px 20px; display: block; color: #d9534f; font-weight: bold;">
-                                            <i class="fas fa-database" style="width: 20px; text-align: center; margin-right: 10px;"></i> Base de Dados
+                                        <a href="{% url 'meus_guardados' %}" style="padding: 10px 20px; display: block;">
+                                            <i class="fa-solid fa-bookmark" style="width: 20px; text-align: center; margin-right: 10px;"></i> Guardados
                                         </a>
                                     </li>
                                     <li class="divider" style="margin: 5px 0;"></li>
-                                {% endif %}
-
-                                {% if user.is_superuser %}
-                                    <li><a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a></li>
-                                {% else %}
+                                {% else  %}
                                     <li>
                                         <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; display: block;">
                                             <i class="fas fa-cog" style="width: 20px; text-align: center; margin-right: 10px;"></i> Editar Perfil
