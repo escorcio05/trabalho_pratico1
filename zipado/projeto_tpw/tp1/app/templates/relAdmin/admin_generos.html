@@ -1,0 +1,26 @@
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}Atores{% endblock %}
+{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+
+{% block cabecalhos_tabela %}
+    <th>Nome do Género Cinematográfico</th>
+{% endblock %}
+
+{% block linhas_tabela %}
+    {% for genero in itens %}
+    <tr>
+        <td><strong>{{ genero.nome }}</strong></td>
+        <td style="text-align: right;">
+            <a href="/admin/app/genero/{{ genero.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
+            <a href="/admin/app/genero/{{ genero.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block botao_adicionar %}
+    <a href="/admin/app/genero/add/" class="btn btn-warning" style="font-weight: bold;">
+        <i class="fas fa-plus"></i> Adicionar genero
+    </a>
+{% endblock %}

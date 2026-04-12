@@ -3,26 +3,42 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    # Rotas dos Filmes
+    # --- SITE PÚBLICO & FILMES ---
     path('', views.lista_filmes, name='lista_filmes'),
     path('filme/<int:filme_id>/', views.detalhe_filme, name='detalhe_filme'),
-
     path('filme/adicionar/', views.adicionar_filme, name='adicionar_filme'),
     path('editar-filme/<int:id>/', views.editar_filme, name='editar_filme'),
 
-    # Rota de Registo (a que criámos na views.py)
-    # Correto: apenas o nome da função, sem parênteses e sem template_name aqui
+    # --- AUTENTICAÇÃO ---
     path('registo/', views.registo, name='registo'),
-    # Rotas de Login/Logout (usando as views prontas do Django)
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    # ... os teus outros urls ...
-    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('verificar-login/', views.redirecionar_apos_login, name='verificar_login'),
 
+    # --- PERFIL (Ajustado para evitar erros de Reverse) ---
+    # Perfil do próprio user logado
+    path('perfil/', views.ver_perfil, name='perfil'),
+    # Perfil de um user específico (visto pelo Admin)
+    path('perfil/<int:user_id>/', views.ver_perfil, name='perfil_detalhado'),
+    # Edição de perfil (agora aceita ID opcional na view para servir a todos)
+    path('perfil/editar/<int:user_id>/', views.editar_perfil, name='editar_perfil'),
+
+    # --- INTERAÇÃO & LISTAS ---
     path('favoritos/', views.meus_favoritos, name='meus_favoritos'),
     path('guardados/', views.meus_guardados, name='meus_guardados'),
     path('favorito/toggle/<int:filme_id>/', views.toggle_favorito, name='toggle_favorito'),
     path('guardado/toggle/<int:filme_id>/', views.toggle_guardado, name='toggle_guardado'),
 
+    # --- CONSOLA DE ADMINISTRAÇÃO (DASHBOARD) ---
+    path('dashboard/', views.dashboard_admin, name='dashboard_admin'),
+    path('dashboard/utilizadores/', views.admin_utilizadores, name='admin_utilizadores'),
+    path('dashboard/grupos/', views.lista_grupos, name='lista_grupos'),
+    path('dashboard/grupos/<int:grupo_id>/', views.detalhe_grupo, name='detalhe_grupo'),
+    path('dashboard/filmes/', views.admin_filmes, name='admin_filmes'),
+    path('dashboard/atores/', views.admin_atores, name='admin_atores'),
+    path('dashboard/realizadores/', views.admin_realizadores, name='admin_realizadores'),
+    path('dashboard/generos/', views.admin_generos, name='admin_generos'),
+    path('dashboard/avaliacoes/', views.admin_avaliacoes, name='admin_avaliacoes'),
 
-    ]
+
+]

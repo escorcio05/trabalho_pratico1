@@ -119,5 +119,5 @@ import os
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static_cdn')
 
-LOGIN_REDIRECT_URL = 'lista_filmes'
+LOGIN_REDIRECT_URL = 'verificar_login'
 LOGOUT_REDIRECT_URL = 'lista_filmes'

@@ -24,68 +24,77 @@
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav navbar-right" style="display: flex; align-items: center; margin: 0;">
                     {% if user.is_authenticated %}
-                        {% if not user.is_superuser %}
-                            <li style="list-style: none;">
-                                <a href="{% url 'meus_favoritos' %}" style="color: #f39c12; padding: 15px 15px; display: flex; align-items: center;">
-                                    <i class="fa-solid fa-heart" style="margin-right: 5px;"></i> Favoritos
+
+                        {# --- SE ESTIVER NO DASHBOARD: MOSTRA APENAS PERFIL E SAIR --- #}
+                        {% if request.resolver_match.url_name == 'dashboard_admin' %}
+                            <li class="dropdown" style="list-style: none;">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#" style="color: white; padding: 15px 10px;">
+                                    <span style="color: #f5c518; font-weight: bold; margin-right: 5px;">ADMIN:</span> {{ user.username }}
+                                    <span class="caret"></span>
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                                            {% csrf_token %}
+                                            <button type="submit" style="width: 100%; text-align: left; padding: 10px 20px; border: none; background: none; color: #d9534f;">
+                                                <i class="fas fa-door-open"></i> Sair da Sessão
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        {# --- SE NÃO ESTIVER NO DASHBOARD: LAYOUT NORMAL --- #}
+                        {% else %}
+                            {% if not user.is_superuser %}
+                                <li style="list-style: none;">
+                                    <a href="{% url 'meus_favoritos' %}" style="color: #f39c12; padding: 15px 15px; display: flex; align-items: center;">
+                                        <i class="fa-solid fa-heart" style="margin-right: 5px;"></i> Favoritos
+                                    </a>
+                                </li>
+                            {% elif user.is_superuser %}
+                                <li>
+                                    <a href="{% url 'dashboard_admin' %}" style="padding: 15px 20px; color: #f5c518; font-weight: bold;">
+                                        <i class="fas fa-user-shield"></i> Painel Admin
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li class="dropdown" style="list-style: none;">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"
+                                   style="display: flex; align-items: center; background: transparent !important; color: white; padding: 15px 10px; text-decoration: none;">
+                                    <span style="margin-right: 10px;">{{ user.username }}</span>
+                                    <span class="avatar-circle" style="margin: 0;">{{ user.username.0|upper }}</span>
+                                </a>
+
+                                <ul class="dropdown-menu" style="background-color: #ffffff; min-width: 180px;">
+                                    {% if user.is_superuser %}
+                                        <li><a href="{% url 'admin:index' %}" target="_blank"><i class="fas fa-database"></i> Base de Dados</a></li>
+                                        <li><a href="{% url 'dashboard_admin' %}"><i class="fas fa-th-large"></i> Dashboard Central</a></li>
+                                    {% elif user.is_staff %}
+                                        <li><a href="{% url 'admin:index' %}"><i class="fas fa-database"></i> Base de Dados</a></li>
+                                        <li><a href="{% url 'editar_perfil' %}"><i class="fas fa-cog"></i> Editar Perfil</a></li>
+                                        <li><a href="{% url 'meus_guardados' %}"><i class="fa-solid fa-bookmark"></i> Guardados</a></li>
+                                    {% else %}
+                                        <li><a href="{% url 'perfil' %}"><i class="fas fa-user"></i> Perfil</a></li>
+                                        <a href="{% url 'editar_perfil' user.id %}">Editar Perfil</a>
+                                        <li><a href="{% url 'meus_guardados' %}"><i class="fa-solid fa-bookmark"></i> Guardados</a></li>
+                                    {% endif %}
+                                    <li class="divider"></li>
+                                    <li>
+                                        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="logout-btn" style="width: 100%; text-align: left; padding: 10px 20px; border: none; background: none; color: #d9534f;">
+                                                <i class="fas fa-door-open"></i> Sair
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </li>
                         {% endif %}
 
-                        <li class="dropdown" style="list-style: none;">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"
-                               style="display: flex; align-items: center; background: transparent !important; color: white; padding: 15px 10px; text-decoration: none;">
-                                <span style="margin-right: 10px;">{{ user.username }}</span>
-                                <span class="avatar-circle" style="margin: 0;">{{ user.username.0|upper }}</span>
-                            </a>
-
-                            <ul class="dropdown-menu" style="background-color: #ffffff; min-width: 180px;">
-
-                                {% if user.is_superuser and user.is_staff %}
-                                    <li><a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a></li>
-                                {% elif user.is_staff and not user.is_superuser%}
-                                   <li>
-                                       <a href="{% url 'admin:index' %}"><i class="fas fa-database" style="width: 20px;"></i> Base de Dados</a>
-
-                                   </li>
-                                   <li>
-                                        <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; display: block;">
-                                            <i class="fas fa-cog" style="width: 20px; text-align: center; margin-right: 10px;"></i> Editar Perfil
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{% url 'meus_guardados' %}" style="padding: 10px 20px; display: block;">
-                                            <i class="fa-solid fa-bookmark" style="width: 20px; text-align: center; margin-right: 10px;"></i> Guardados
-                                        </a>
-                                    </li>
-                                    <li class="divider" style="margin: 5px 0;"></li>
-                                {% else  %}
-                                    <li>
-                                        <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; display: block;">
-                                            <i class="fas fa-cog" style="width: 20px; text-align: center; margin-right: 10px;"></i> Editar Perfil
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{% url 'meus_guardados' %}" style="padding: 10px 20px; display: block;">
-                                            <i class="fa-solid fa-bookmark" style="width: 20px; text-align: center; margin-right: 10px;"></i> Guardados
-                                        </a>
-                                    </li>
-                                {% endif %}
-                                <li class="divider" style="margin: 5px 0;"></li>
-                                <li>
-                                    <form action="{% url 'logout' %}" method="post" style="margin: 0; padding: 0;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="logout-btn" style="width: 100%; text-align: left; padding: 10px 20px; border: none; background: none; color: #d9534f;">
-                                            <i class="fas fa-door-open" style="width: 20px; text-align: center; margin-right: 10px;"></i> Sair
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
                     {% else %}
-                        <li>
-                            <a href="{% url 'login' %}" class="btn btn-warning btn-sm btn-entrar-nav" style="margin-top: 10px;">Entrar</a>
-                        </li>
+                        <li><a href="{% url 'login' %}" class="btn btn-warning btn-sm btn-entrar-nav" style="margin-top: 10px;">Entrar</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -108,8 +117,6 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
-    {% block scripts %}
-    {% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

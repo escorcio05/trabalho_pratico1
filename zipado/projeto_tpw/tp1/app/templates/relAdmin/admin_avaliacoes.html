@@ -1,0 +1,37 @@
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}Avaliações{% endblock %}
+{% block sub_titulo %}Moderação de Comentários e Notas{% endblock %}
+
+{% block cabecalhos_tabela %}
+    <th>Utilizador</th>
+    <th>Filme</th>
+    <th>Avaliação</th>
+    <th>Comentário</th>
+{% endblock %}
+
+{% block linhas_tabela %}
+    {% for av in itens %}
+    <tr>
+        <td><span class="avatar-circle" style="width: 30px; height: 30px; font-size: 12px; display: inline-flex;">{{ av.utilizador.username.0|upper }}</span> <strong>{{ av.utilizador.username }}</strong></td>
+        <td>{{ av.filme.titulo }}</td>
+        <td>
+            <span style="color: #f5c518;">
+                <i class="fas fa-star"></i> {{ av.nota }}/5
+            </span>
+        </td>
+        <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa;">
+            "{{ av.comentario }}"
+        </td>
+        <td>
+            <a href="{% url 'perfil_detalhado' av.utilizador.id %}" style="color: #f5c518; text-decoration: none;">
+                <strong>{{ av.utilizador.username }}</strong>
+            </a>
+        </td>
+        <td style="text-align: right;">
+            <a href="/admin/app/avaliacao/{{ av.id }}/change/" class="btn-acao"><i class="fas fa-eye"></i></a>
+            <a href="/admin/app/avaliacao/{{ av.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}Atores{% endblock %}
+{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+
+{% block cabecalhos_tabela %}
+    <th>Nome do Realizador</th>
+{% endblock %}
+
+{% block linhas_tabela %}
+    {% for realizador in itens %}
+    <tr>
+        <td><strong>{{ realizador.nome }}</strong></td>
+        <td style="text-align: right;">
+            <a href="/admin/app/ator/{{ realizador.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
+            <a href="/admin/app/ator/{{ realizador.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block botao_adicionar %}
+    <a href="/admin/app/realizador/add/" class="btn btn-warning" style="font-weight: bold;">
+        <i class="fas fa-plus"></i> Adicionar Realizador
+    </a>
+{% endblock %}

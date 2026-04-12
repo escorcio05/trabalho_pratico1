@@ -2,26 +2,24 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Filme, Realizador, Ator, Genero, Favorito, Guardado, Avaliacao
-from .forms import PesquisaFilmeForm, RegistoForm, FilmeForm, EditarPerfilForm
+from django.contrib.auth.models import User, Group
+from .models import Filme, Ator, Realizador, Genero, Avaliacao, Favorito, Guardado
+from .forms import PesquisaFilmeForm, RegistoForm, FilmeForm
 
 
-# 1. Listagem Principal
+# --- 1. LISTAGEM E DETALHES ---
+
 def lista_filmes(request):
     form = PesquisaFilmeForm(request.GET or None)
     filmes = Filme.objects.all()
-
-    # Listas para controlar as cores dos ícones
     ids_favoritos = []
     ids_guardados = []
 
-    # Pesquisa
     if form.is_valid():
         query = form.cleaned_data.get('query')
         if query:
             filmes = filmes.filter(titulo__icontains=query)
 
-    # Ordenação
     ordem = request.GET.get('ordenar')
     if ordem == 'recentes':
         filmes = filmes.order_by('-data_lancamento')
@@ -30,21 +28,16 @@ def lista_filmes(request):
     elif ordem == 'titulo':
         filmes = filmes.order_by('titulo')
 
-    # Se logado, buscar o que o user já marcou
     if request.user.is_authenticated and not request.user.is_superuser:
         ids_favoritos = list(Favorito.objects.filter(utilizador=request.user).values_list('filme_id', flat=True))
         ids_guardados = list(Guardado.objects.filter(utilizador=request.user).values_list('filme_id', flat=True))
 
     return render(request, 'lista_filmes.html', {
-        'filmes': filmes,
-        'form': form,
-        'ordem_atual': ordem,
-        'ids_favoritos': ids_favoritos,
-        'ids_guardados': ids_guardados
+        'filmes': filmes, 'form': form, 'ordem_atual': ordem,
+        'ids_favoritos': ids_favoritos, 'ids_guardados': ids_guardados
     })
 
 
-# 2. Detalhes
 def detalhe_filme(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
     avaliacoes = filme.avaliacoes.all().order_by('-data_postagem')
@@ -73,7 +66,8 @@ def detalhe_filme(request, filme_id):
     })
 
 
-# 3. Registo e Perfil
+# --- 2. AUTENTICAÇÃO E PERFIL ---
+
 def registo(request):
     if request.method == 'POST':
         form = RegistoForm(request.POST)
@@ -85,34 +79,126 @@ def registo(request):
     return render(request, 'registration/registo.html', {'form': form})
 
 
+def redirecionar_apos_login(request):
+    if request.user.is_superuser:
+        return redirect('dashboard_admin')
+    return redirect('lista_filmes')
+
+
+def ver_perfil(request, user_id=None):
+    # Se houver ID, o admin está a ver alguém. Se não, o user vê-se a si mesmo.
+    target_user = get_object_or_404(User, id=user_id) if user_id else request.user
+    return render(request, 'perfil.html', {'perfil_user': target_user})
+
+
 @login_required
-def editar_perfil(request):
-    if request.user.is_superuser: return redirect('admin:index')
-    if request.method == 'POST':
-        form = EditarPerfilForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, request.user)
-            messages.success(request, 'Perfil atualizado!')
-            return redirect('lista_filmes')
-    else:
-        form = EditarPerfilForm(instance=request.user)
-    return render(request, 'editar_perfil.html', {'form': form})
+def editar_perfil(request, user_id):
+    # Puxa o utilizador pelo ID para garantir que editamos o correto
+    u = get_object_or_404(User, id=user_id)
+
+    # Segurança: Apenas o próprio ou Superuser podem editar
+    if request.user != u and not request.user.is_superuser:
+        return redirect('lista_filmes')
+
+    if request.method == "POST":
+        u.username = request.POST.get('username')
+        u.first_name = request.POST.get('first_name')
+        u.last_name = request.POST.get('last_name')
+        u.email = request.POST.get('email')
+
+        # PASSWORD: Só processa se NÃO for o Admin a editar a conta de outro
+        # E se o campo não estiver vazio
+        nova_pw = request.POST.get('password')
+        if nova_pw and not request.user.is_superuser:
+            u.set_password(nova_pw)
+            u.save()
+            update_session_auth_hash(request, u)
+        else:
+            u.save()
+
+        # Redireciona para o perfil detalhado do user que acabou de ser editado
+        return redirect('perfil_detalhado', user_id=u.id)
+
+    return render(request, 'editar_perfil.html', {'perfil_user': u})
 
 
-# 4. Gestão de Filmes (Admin)
+# --- 3. DASHBOARD E BACKOFFICE ---
+
+@user_passes_test(lambda u: u.is_superuser)
+def dashboard_admin(request):
+    context = {
+        'total_users': User.objects.count(),
+        'total_grupos': Group.objects.count(),
+        'total_filmes': Filme.objects.count(),
+        'total_atores': Ator.objects.count(),
+        'total_realizadores': Realizador.objects.count(),
+        'total_generos': Genero.objects.count(),
+        'total_avaliacoes': Avaliacao.objects.count(),
+    }
+    return render(request, 'dashboard_admin.html', context)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_utilizadores(request):
+    usuarios = User.objects.all().order_by('-date_joined')
+    return render(request, 'relAdmin/admin_utilizadores.html', {'itens': usuarios})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_atores(request):
+    atores = Ator.objects.all().order_by('nome')
+    return render(request, 'relAdmin/admin_atores.html', {'itens': atores})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_realizadores(request):
+    realizadores = Realizador.objects.all().order_by('nome')
+    return render(request, 'relAdmin/admin_realizadores.html', {'itens': realizadores})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_generos(request):
+    generos = Genero.objects.all().order_by('nome')
+    return render(request, 'relAdmin/admin_generos.html', {'itens': generos})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_filmes(request):
+    filmes = Filme.objects.all().order_by('-id')
+    return render(request, 'relAdmin/admin_filmes.html', {'itens': filmes})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def admin_avaliacoes(request):
+    avaliacoes = Avaliacao.objects.all().order_by('-data_postagem')
+    return render(request, 'relAdmin/admin_avaliacoes.html', {'itens': avaliacoes})
+
+
+# --- 4. GRUPOS ---
+
+@user_passes_test(lambda u: u.is_superuser)
+def lista_grupos(request):
+    grupos = Group.objects.all().order_by('name')
+    return render(request, 'relAdmin/admin_permissoes.html', {'grupos': grupos})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def detalhe_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    utilizadores = grupo.user_set.all()
+    return render(request, 'detalhe_grupos.html', {'grupo': grupo, 'utilizadores': utilizadores})
+
+
+# --- 5. FAVORITOS / GUARDADOS / ADICIONAR FILME (Código Original Mantido) ---
+
 @user_passes_test(lambda u: u.is_superuser)
 def adicionar_filme(request):
     if request.method == 'POST':
         dados = request.POST.copy()
-
-        # Lógica para Realizador
         r_val = dados.get('realizador')
         if r_val and not r_val.isdigit():
             obj, _ = Realizador.objects.get_or_create(nome=r_val)
             dados['realizador'] = str(obj.id)
-
-        # Lógica para Atores/Géneros (Tags Select2)
         for field in ['atores', 'generos']:
             vals = dados.getlist(field)
             new_ids = []
@@ -124,7 +210,6 @@ def adicionar_filme(request):
                     obj, _ = model.objects.get_or_create(nome=v.strip())
                     new_ids.append(str(obj.id))
             dados.setlist(field, new_ids)
-
         form = FilmeForm(dados, request.FILES)
         if form.is_valid():
             form.save()
@@ -139,9 +224,7 @@ def adicionar_filme(request):
 def editar_filme(request, id):
     filme = get_object_or_404(Filme, id=id)
     if request.method == 'POST':
-        dados = request.POST.copy()
-        # Repetir a mesma lógica de tratamento de tags do adicionar_filme aqui...
-        form = FilmeForm(dados, request.FILES, instance=filme)
+        form = FilmeForm(request.POST, request.FILES, instance=filme)
         if form.is_valid():
             form.save()
             return redirect('lista_filmes')
@@ -150,7 +233,6 @@ def editar_filme(request, id):
     return render(request, 'adicionar_filme.html', {'form': form, 'editando': True})
 
 
-# 5. Favoritos e Guardados
 @login_required
 def meus_favoritos(request):
     favs = Favorito.objects.filter(utilizador=request.user)

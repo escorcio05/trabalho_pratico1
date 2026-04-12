@@ -1,0 +1,37 @@
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}Membros do Grupo: {{ grupo.name }}{% endblock %}
+{% block sub_titulo %}Visualização de utilizadores com este perfil{% endblock %}
+
+{% block cabecalhos_tabela %}
+    <th>Username</th>
+    <th>Email</th>
+    <th>Data de Adesão</th>
+{% endblock %}
+
+{% block linhas_tabela %}
+    {% for user in utilizadores %}
+    <tr>
+        <td><strong>{{ user.username }}</strong></td>
+        <td>{{ user.email }}</td>
+        <td style="color: #888;">{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+        <td style="text-align: right;">
+            <a href="/admin/auth/user/{{ user.id }}/change/" class="btn-acao" title="Editar Utilizador">
+                <i class="fas fa-user-edit"></i>
+            </a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4" class="text-center" style="padding: 30px; color: #666;">
+            Nenhum utilizador associado a este grupo.
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}
+
+{% block botao_adicionar %}
+    <a href="{% url 'lista_grupos' %}" class="btn btn-default" style="background: #333; color: white; border: none;">
+        <i class="fas fa-chevron-left"></i> Voltar aos Grupos
+    </a>
+{% endblock %}

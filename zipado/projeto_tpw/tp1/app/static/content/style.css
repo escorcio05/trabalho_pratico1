@@ -305,3 +305,66 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
 /* Quando estiver ativo (deves adicionar esta classe via Django/JS) */
 .icon-save.active { color: white; font-weight: 900; } /* Preenchido */
 .icon-heart.active { color: #f39c12; font-weight: 900; } /* Amarelo */
+
+/* Grupos*/
+
+/* Estilo para a lista de Grupos */
+.list-group-item-dark-custom {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border: 1px solid #333 !important;
+    transition: all 0.3s ease;
+    padding: 15px 20px;
+    margin-bottom: 8px;
+    border-radius: 8px !important;
+}
+
+.list-group-item-dark-custom:hover {
+    background-color: #252525 !important;
+    border-color: #f5c518 !important; /* Amarelo IMDb ao passar o rato */
+    transform: translateX(5px);
+}
+
+/* Badges (Contador de utilizadores) */
+.badge-amarela {
+    background-color: #f5c518 !important;
+    color: #000 !important;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+/* Secções de Detalhe */
+.permissoes-card {
+    background: #1a1a1a;
+    border-left: 4px solid #f5c518;
+    padding: 20px;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.lista-custom {
+    list-style: none;
+    padding-left: 0;
+}
+
+.lista-custom li {
+    padding: 8px 0;
+    border-bottom: 1px solid #262626;
+    color: #ccc;
+}
+
+.lista-custom i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/*ADMIN*/
+
+.admin-card {
+        display: block; background: #1a1a1a; border: 2px solid #333; border-radius: 15px;
+        padding: 30px; text-align: center; text-decoration: none !important; transition: 0.3s; margin-bottom: 20px;
+    }
+.admin-card:hover { border-color: #f5c518; transform: translateY(-5px); background: #222; }
+.admin-card i { font-size: 40px; color: #f5c518; margin-bottom: 15px; }
+.admin-card h4 { color: white; font-weight: bold; }
