@@ -20,7 +20,8 @@ urlpatterns = [
     path('perfil/', views.ver_perfil, name='perfil'),
     # Perfil de um user específico (visto pelo Admin)
     path('perfil/<int:user_id>/', views.ver_perfil, name='perfil_detalhado'),
-    # Edição de perfil (agora aceita ID opcional na view para servir a todos)
+    # Perfil de um user específico (visto pelo Admin)
+    path('perfil/<int:user_id>/', views.ver_perfil, name='perfil_utilizador'),    # Edição de perfil (agora aceita ID opcional na view para servir a todos)
     path('perfil/editar/<int:user_id>/', views.editar_perfil, name='editar_perfil'),
 
     # --- INTERAÇÃO & LISTAS ---
@@ -32,8 +33,15 @@ urlpatterns = [
     # --- CONSOLA DE ADMINISTRAÇÃO (DASHBOARD) ---
     path('dashboard/', views.dashboard_admin, name='dashboard_admin'),
     path('dashboard/utilizadores/', views.admin_utilizadores, name='admin_utilizadores'),
+
     path('dashboard/grupos/', views.lista_grupos, name='lista_grupos'),
+    # Grupos
+    path('dashboard/grupos/novo/', views.criar_grupo, name='criar_grupo'),
+    path('dashboard/grupos/editar/<int:grupo_id>/', views.editar_grupo, name='editar_grupo'),
+    path('dashboard/grupos/apagar/<int:grupo_id>/', views.apagar_grupo, name='apagar_grupo'),
     path('dashboard/grupos/<int:grupo_id>/', views.detalhe_grupo, name='detalhe_grupo'),
+    path('dashboard/grupos/<int:grupo_id>/remover/<int:user_id>/', views.remover_utilizador_grupo,
+         name='remover_user_grupo'),
     path('dashboard/filmes/', views.admin_filmes, name='admin_filmes'),
     path('dashboard/atores/', views.admin_atores, name='admin_atores'),
     path('dashboard/realizadores/', views.admin_realizadores, name='admin_realizadores'),
@@ -44,4 +52,6 @@ urlpatterns = [
     path('dashboard/apagar/<str:modelo>/<int:item_id>/', views.apagar_item, name='apagar_item_admin'),
 
     path('dashboard/filmes/apagar/<int:filme_id>/', views.apagar_filme, name='apagar_filme_admin'),
+
+    path('dashboard/avaliacoes/apagar/<int:av_id>/', views.apagar_avaliacao, name='apagar_avaliacao'),
 ]

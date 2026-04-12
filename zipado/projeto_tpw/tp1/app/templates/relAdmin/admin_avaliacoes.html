@@ -1,37 +1,51 @@
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Avaliações{% endblock %}
-{% block sub_titulo %}Moderação de Comentários e Notas{% endblock %}
+{% block titulo_pagina %}Gestão de Avaliações{% endblock %}
+{% block sub_titulo %}Moderação de comentários e notas dos utilizadores{% endblock %}
 
 {% block cabecalhos_tabela %}
-    <th>Utilizador</th>
-    <th>Filme</th>
-    <th>Avaliação</th>
-    <th>Comentário</th>
+    <th style="width: 15%;">Utilizador / Filme</th>
+    <th style="width: 10%;">Nota</th>
+    <th style="width: 60%;">Comentário</th>
+    <th style="text-align: right; width: 15%;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
     {% for av in itens %}
     <tr>
-        <td><span class="avatar-circle" style="width: 30px; height: 30px; font-size: 12px; display: inline-flex;">{{ av.utilizador.username.0|upper }}</span> <strong>{{ av.utilizador.username }}</strong></td>
-        <td>{{ av.filme.titulo }}</td>
         <td>
-            <span style="color: #f5c518;">
-                <i class="fas fa-star"></i> {{ av.nota }}/5
+            <small class="text-muted">De: </small><strong>{{ av.utilizador.username }}</strong><br>
+            <small class="text-muted">Em: </small><span style="font-size: 0.9em;">{{ av.filme.titulo }}</span>
+        </td>
+        <td>
+            <span class="badge" style="background-color: #ffc107; color: #000;">
+                {{ av.nota }} <i class="fas fa-star"></i>
             </span>
         </td>
-        <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa;">
-            "{{ av.comentario }}"
-        </td>
         <td>
-            <a href="{% url 'perfil_detalhado' av.utilizador.id %}" style="color: #f5c518; text-decoration: none;">
-                <strong>{{ av.utilizador.username }}</strong>
-            </a>
+            <div style="background: #f9f9f9; padding: 10px; border-left: 3px solid #ddd; font-style: italic; color: #555;">
+                "{{ av.comentario|default:"Sem comentário." }}"
+            </div>
+            <small style="color: #999; font-size: 0.8em;">Postado em: {{ av.data_postagem|date:"d/m/Y H:i" }}</small>
         </td>
-        <td style="text-align: right;">
-            <a href="/admin/app/avaliacao/{{ av.id }}/change/" class="btn-acao"><i class="fas fa-eye"></i></a>
-            <a href="/admin/app/avaliacao/{{ av.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+        <td style="text-align: right; vertical-align: middle;">
+            <a href="{% url 'detalhe_filme' av.filme.id %}?origem=admin_avaliacoes" class="btn-acao" title="Ver no Filme">
+                <i class="fas fa-eye"></i>
+            </a>
+
+            <a href="{% url 'apagar_avaliacao' av.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja eliminar este comentário?');"
+               title="Eliminar Avaliação">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}
+{% endblock %}
+
+{% block botao_adicionar %}
+    <a href="." class="btn btn-secondary btn-sm">
+        <i class="fas fa-sync"></i> Atualizar Lista
+    </a>
 {% endblock %}

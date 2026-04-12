@@ -1,5 +1,14 @@
 {% extends "relAdmin/admin_base_gestao.html" %}
 
+{% block titulo_pagina %}Gestão de Filmes{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'dashboard_admin' %}">Painel Administrativo</a></li>
+    <li class="breadcrumb-item active">Filmes</li>
+{% endblock %}
+
+{% block sub_titulo %}Gestão de Filmes{% endblock %}
+
 {% block cabecalhos_tabela %}
     <th>Poster</th>
     <th>Título</th>
@@ -12,25 +21,17 @@
     <tr>
         <td>
             {% if filme.imagem %}
-                <img src="{{ filme.imagem.url }}" alt="{{ filme.titulo }}" style="width: 50px; height: auto; border-radius: 4px;">
+                <img src="{{ filme.imagem.url }}" alt="{{ filme.titulo }}" style="width: 45px; height: auto; border-radius: 4px;">
             {% else %}
-                <span class="text-muted">Sem foto</span>
+                <small class="text-muted">N/A</small>
             {% endif %}
         </td>
         <td><strong>{{ filme.titulo }}</strong></td>
-        <td>{{ filme.data_lancamento|date:"Y" }}</td> <td style="text-align: right;">
-            <a href="{% url 'detalhe_filme' filme.id %}?origem=admin" class="btn-acao" title="Ver Detalhes">
-                <i class="fas fa-eye"></i>
-            </a>
-
-            <a href="/admin/app/filme/{{ filme.id }}/change/" class="btn-acao" title="Editar">
-                <i class="fas fa-edit"></i>
-            </a>
-
-            <a href="{% url 'apagar_filme_admin' filme.id %}"
-               class="btn-acao btn-delete"
-               title="Apagar"
-               onclick="return confirm('Tem a certeza que deseja apagar o filme {{ filme.titulo }}?');">
+        <td>{{ filme.data_lancamento|date:"Y" }}</td>
+        <td style="text-align: right;">
+            <a href="{% url 'detalhe_filme' filme.id %}?origem=admin_filmes" class="btn-acao"><i class="fas fa-eye"></i></a>
+            <a href="/admin/app/filme/{{ filme.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
+            <a href="{% url 'apagar_filme_admin' filme.id %}" class="btn-acao btn-delete" onclick="return confirm('Apagar filme?')">
                 <i class="fas fa-trash"></i>
             </a>
         </td>

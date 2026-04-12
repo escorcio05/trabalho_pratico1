@@ -4,10 +4,19 @@
     <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h2 style="color: #f5c518; margin: 0;">Perfil de {{ perfil_user.username }}</h2>
-            <a href="{% if request.user.is_superuser %}{% url 'admin_utilizadores' %}{% else %}{% url 'lista_filmes' %}{% endif %}"
-               class="btn btn-sm" style="background: #333; color: #eee;">
-               Voltar
-            </a>
+            {% if origem == 'grupo' %}
+                <a href="{% url 'detalhe_grupo' grupo_id %}" class="btn btn-warning" style="font-weight: bold;">
+                    <i class="fas fa-arrow-left"></i> Voltar ao Grupo
+                </a>
+            {% elif origem == 'admin' %}
+                <a href="{% url 'admin_utilizadores' %}" class="btn btn-warning" style="font-weight: bold;">
+                    <i class="fas fa-arrow-left"></i> Voltar à Lista
+                </a>
+            {% else %}
+                <a href="{% url 'lista_filmes' %}" class="btn btn-warning" style="font-weight: bold;">
+                    <i class="fas fa-arrow-left"></i> Voltar à Home
+                </a>
+            {% endif %}
         </div>
 
         <div class="row">

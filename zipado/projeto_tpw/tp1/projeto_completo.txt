@@ -327,8 +327,7 @@ urlpatterns = [
     # Perfil do próprio user logado
     path('perfil/', views.ver_perfil, name='perfil'),
     # Perfil de um user específico (visto pelo Admin)
-    path('perfil/<int:user_id>/', views.ver_perfil, name='perfil_detalhado'),
-    # Edição de perfil (agora aceita ID opcional na view para servir a todos)
+    path('perfil/<int:user_id>/', views.ver_perfil, name='perfil_utilizador'),    # Edição de perfil (agora aceita ID opcional na view para servir a todos)
     path('perfil/editar/<int:user_id>/', views.editar_perfil, name='editar_perfil'),
 
     # --- INTERAÇÃO & LISTAS ---
@@ -340,7 +339,13 @@ urlpatterns = [
     # --- CONSOLA DE ADMINISTRAÇÃO (DASHBOARD) ---
     path('dashboard/', views.dashboard_admin, name='dashboard_admin'),
     path('dashboard/utilizadores/', views.admin_utilizadores, name='admin_utilizadores'),
+
     path('dashboard/grupos/', views.lista_grupos, name='lista_grupos'),
+    # Grupos
+    path('dashboard/grupos/', views.lista_grupos, name='lista_grupos'),
+    path('dashboard/grupos/novo/', views.criar_grupo, name='criar_grupo'),  # Adicionado
+    path('dashboard/grupos/editar/<int:grupo_id>/', views.editar_grupo, name='editar_grupo'),
+    path('dashboard/grupos/apagar/<int:grupo_id>/', views.apagar_grupo, name='apagar_grupo'),
     path('dashboard/grupos/<int:grupo_id>/', views.detalhe_grupo, name='detalhe_grupo'),
     path('dashboard/filmes/', views.admin_filmes, name='admin_filmes'),
     path('dashboard/atores/', views.admin_atores, name='admin_atores'),
@@ -348,7 +353,10 @@ urlpatterns = [
     path('dashboard/generos/', views.admin_generos, name='admin_generos'),
     path('dashboard/avaliacoes/', views.admin_avaliacoes, name='admin_avaliacoes'),
 
+    path('dashboard/editar/<str:modelo>/<int:item_id>/', views.editar_item, name='editar_item_admin'),
+    path('dashboard/apagar/<str:modelo>/<int:item_id>/', views.apagar_item, name='apagar_item_admin'),
 
+    path('dashboard/filmes/apagar/<int:filme_id>/', views.apagar_filme, name='apagar_filme_admin'),
 ]
 
 
@@ -360,10 +368,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth.models import User, Group
 from .models import Filme, Ator, Realizador, Genero, Avaliacao, Favorito, Guardado
 from .forms import PesquisaFilmeForm, RegistoForm, FilmeForm
-
+from django.urls import reverse
+from django.contrib.auth.models import User, Group, Permission
 
 # --- 1. LISTAGEM E DETALHES ---
 
@@ -399,6 +407,10 @@ def lista_filmes(request):
 def detalhe_filme(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
     avaliacoes = filme.avaliacoes.all().order_by('-data_postagem')
+
+    # Captura o parâmetro 'origem' do URL (se não existir, fica None)
+    origem = request.GET.get('origem')
+
     nota_user = 0
     comentario_user = ""
 
@@ -406,12 +418,17 @@ def detalhe_filme(request, filme_id):
         if request.method == "POST":
             nova_nota = request.POST.get('nota')
             novo_comentario = request.POST.get('comentario')
+
+            # Se houver um redirecionamento após o POST, mantemos a origem no URL
             if nova_nota:
                 Avaliacao.objects.update_or_create(
                     filme=filme, utilizador=request.user,
                     defaults={'nota': int(nova_nota), 'comentario': novo_comentario}
                 )
-                return redirect('detalhe_filme', filme_id=filme.id)
+                url_redirecionamento = f"{reverse('detalhe_filme', args=[filme.id])}"
+                if origem:
+                    url_redirecionamento += f"?origem={origem}"
+                return redirect(url_redirecionamento)
 
         av = Avaliacao.objects.filter(filme=filme, utilizador=request.user).first()
         if av:
@@ -419,8 +436,11 @@ def detalhe_filme(request, filme_id):
             comentario_user = av.comentario
 
     return render(request, 'detalhe_filme.html', {
-        'filme': filme, 'avaliacoes': avaliacoes,
-        'nota_user': nota_user, 'comentario_user': comentario_user
+        'filme': filme,
+        'avaliacoes': avaliacoes,
+        'nota_user': nota_user,
+        'comentario_user': comentario_user,
+        'origem': origem  # Enviamos a origem para o template
     })
 
 
@@ -444,9 +464,15 @@ def redirecionar_apos_login(request):
 
 
 def ver_perfil(request, user_id=None):
-    # Se houver ID, o admin está a ver alguém. Se não, o user vê-se a si mesmo.
     target_user = get_object_or_404(User, id=user_id) if user_id else request.user
-    return render(request, 'perfil.html', {'perfil_user': target_user})
+    origem = request.GET.get('origem')
+    grupo_id = request.GET.get('grupo_id')
+
+    return render(request, 'perfil.html', {
+        'perfil_user': target_user,
+        'origem': origem,
+        'grupo_id': grupo_id
+    })
 
 
 @login_required
@@ -542,9 +568,20 @@ def lista_grupos(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def detalhe_grupo(request, grupo_id):
+    # Procura o grupo ou dá erro 404 se não existir
     grupo = get_object_or_404(Group, id=grupo_id)
+
+    # Puxa todos os utilizadores ligados a este grupo
     utilizadores = grupo.user_set.all()
-    return render(request, 'detalhe_grupos.html', {'grupo': grupo, 'utilizadores': utilizadores})
+
+    # Puxa todas as permissões que este grupo detém
+    permissoes = grupo.permissions.all().select_related('content_type')
+
+    return render(request, 'relAdmin/detalhe_grupo.html', {
+        'grupo': grupo,
+        'utilizadores': utilizadores,
+        'permissoes': permissoes
+    })
 
 
 # --- 5. FAVORITOS / GUARDADOS / ADICIONAR FILME (Código Original Mantido) ---
@@ -617,6 +654,100 @@ def toggle_guardado(request, filme_id):
     g, created = Guardado.objects.get_or_create(utilizador=request.user, filme=filme)
     if not created: g.delete()
     return redirect(request.META.get('HTTP_REFERER', 'lista_filmes'))
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_item(request, modelo, item_id):
+    # Determina o modelo com base na string enviada pelo URL
+    modelos = {'ator': Ator, 'genero': Genero, 'realizador': Realizador}
+    model_class = modelos.get(modelo)
+
+    item = get_object_or_404(model_class, id=item_id)
+
+    if request.method == "POST":
+        novo_nome = request.POST.get('nome')
+        if novo_nome:
+            item.nome = novo_nome
+            item.save()
+            messages.success(request, f"{modelo.capitalize()} atualizado com sucesso!")
+        return redirect(f'admin_{modelo}es' if modelo != 'ator' else 'admin_atores')
+
+    return render(request, 'relAdmin/editar_item_admin.html', {'item': item, 'tipo': modelo})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_item(request, modelo, item_id):
+    modelos = {'ator': Ator, 'genero': Genero, 'realizador': Realizador}
+    model_class = modelos.get(modelo)
+
+    item = get_object_or_404(model_class, id=item_id)
+    item.delete()
+    messages.success(request, f"{modelo.capitalize()} removido da base de dados.")
+
+    # Redireciona de volta para a lista correta
+    url_redirect = f'admin_{modelo}es' if modelo != 'ator' else 'admin_atores'
+    return redirect(url_redirect)
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_filme(request, filme_id):
+    filme = get_object_or_404(Filme, id=filme_id)
+    nome_filme = filme.titulo
+    filme.delete()
+    messages.success(request, f"O filme '{nome_filme}' foi apagado com sucesso.")
+    return redirect('admin_filmes')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def criar_grupo(request):
+    todas_permissoes = Permission.objects.all()
+    if request.method == "POST":
+        nome = request.POST.get('nome')
+        perms_selecionadas = request.POST.getlist('permissoes')
+        if nome:
+            novo_grupo = Group.objects.create(name=nome)
+            novo_grupo.permissions.set(perms_selecionadas)
+            messages.success(request, f"Grupo '{nome}' criado com sucesso!")
+            return redirect('lista_grupos')
+
+    return render(request, 'relAdmin/editar_grupo.html', {
+        'todas_permissoes': todas_permissoes,
+        'modo': 'Criar'
+    })
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    todas_permissoes = Permission.objects.all()
+    if request.method == "POST":
+        grupo.name = request.POST.get('nome')
+        perms_selecionadas = request.POST.getlist('permissoes')
+        grupo.permissions.set(perms_selecionadas)
+        grupo.save()
+        messages.success(request, f"Grupo '{grupo.name}' atualizado!")
+        return redirect('lista_grupos')
+
+    return render(request, 'relAdmin/editar_grupo.html', {
+        'grupo': grupo,
+        'todas_permissoes': todas_permissoes,
+        'modo': 'Editar'
+    })
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    grupo.delete()
+    messages.success(request, "Grupo eliminado.")
+    return redirect('lista_grupos')
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def remover_utilizador_grupo(request, grupo_id, user_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    utilizador = get_object_or_404(User, id=user_id)
+    grupo.user_set.remove(utilizador)
+    messages.success(request, f"{utilizador.username} removido do grupo.")
+    return redirect('detalhe_grupo', grupo_id=grupo.id)
 
 
 ==================================================
@@ -1411,6 +1542,31 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
 .admin-card h4 { color: white; font-weight: bold; }
 
 
+    /* Efeito de hover nas linhas para parecer mais moderno */
+.table-hover tbody tr:hover {
+    background-color: #222 !important;
+    transition: 0.2s;
+}
+.table > tbody > tr > td {
+    border-top: 1px solid #222;
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+.btn-acao { color: #888; margin-left: 10px; transition: 0.3s; }
+.btn-acao:hover { color: #f5c518; }
+.btn-delete:hover { color: #d9534f; }
+
+/* Estilo para as checkboxes ficarem mais visíveis */
+.form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+.form-check-label:hover {
+    cursor: pointer;
+    color: #ffc107;
+}
+
+
 
 ==================================================
 FICHEIRO: .\app\templates\adicionar_filme.html
@@ -1583,11 +1739,15 @@ FICHEIRO: .\app\templates\detalhe_filme.html
                     </div>
                 </div>
 
-                <div style="margin-top: 40px; padding-bottom: 20px;">
-                    <a href="{% url 'lista_filmes' %}" class="btn btn-default" style="background: #333; color: white; border: none;">
+                {% if origem == 'admin' %}
+                    <a href="{% url 'admin_filmes' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'lista_filmes' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Voltar à Lista
                     </a>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -2036,10 +2196,11 @@ FICHEIRO: .\app\templates\perfil.html
     <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h2 style="color: #f5c518; margin: 0;">Perfil de {{ perfil_user.username }}</h2>
-            <a href="{% if request.user.is_superuser %}{% url 'admin_utilizadores' %}{% else %}{% url 'lista_filmes' %}{% endif %}"
-               class="btn btn-sm" style="background: #333; color: #eee;">
-               Voltar
-            </a>
+            {% if origem == 'grupo' %}
+                <a href="{% url 'detalhe_grupo' grupo_id %}" class="btn btn-warning">Voltar ao Grupo</a>
+            {% else %}
+                <a href="{% url 'lista_filmes' %}" class="btn btn-warning">Voltar</a>
+            {% endif %}
         </div>
 
         <div class="row">
@@ -2136,15 +2297,21 @@ FICHEIRO: .\app\templates\relAdmin\admin_atores.html
 
 {% block cabecalhos_tabela %}
     <th>Nome do Ator</th>
-{% endblock %}
+    <th style="text-align: right;">Ações</th> {% endblock %}
 
 {% block linhas_tabela %}
     {% for ator in itens %}
     <tr>
         <td><strong>{{ ator.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/ator/{{ ator.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/ator/{{ ator.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'ator' ator.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'ator' ator.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar {{ ator.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}
@@ -2239,22 +2406,6 @@ FICHEIRO: .\app\templates\relAdmin\admin_base_gestao.html
         </div>
     </div>
 </div>
-
-<style>
-    /* Efeito de hover nas linhas para parecer mais moderno */
-    .table-hover tbody tr:hover {
-        background-color: #222 !important;
-        transition: 0.2s;
-    }
-    .table > tbody > tr > td {
-        border-top: 1px solid #222;
-        vertical-align: middle;
-        padding: 12px 8px;
-    }
-    .btn-acao { color: #888; margin-left: 10px; transition: 0.3s; }
-    .btn-acao:hover { color: #f5c518; }
-    .btn-delete:hover { color: #d9534f; }
-</style>
 {% endblock %}
 
 
@@ -2264,49 +2415,42 @@ FICHEIRO: .\app\templates\relAdmin\admin_filmes.html
 
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Filmes{% endblock %}
-{% block sub_titulo %}Catálogo Completo de Títulos{% endblock %}
-
 {% block cabecalhos_tabela %}
     <th>Poster</th>
     <th>Título</th>
     <th>Ano</th>
-    <th>Géneros</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
     {% for filme in itens %}
     <tr>
-        <td style="width: 80px;">
-            {% if filme.poster %}
-                <img src="{{ filme.poster.url }}" style="width: 50px; border-radius: 4px; border: 1px solid #333;">
+        <td>
+            {% if filme.imagem %}
+                <img src="{{ filme.imagem.url }}" alt="{{ filme.titulo }}" style="width: 50px; height: auto; border-radius: 4px;">
             {% else %}
-                <div style="width: 50px; height: 75px; background: #222; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-image" style="color: #444;"></i>
-                </div>
+                <span class="text-muted">Sem foto</span>
             {% endif %}
         </td>
         <td><strong>{{ filme.titulo }}</strong></td>
-        <td>{{ filme.ano }}</td>
-        <td>
-            {% for genero in filme.generos.all %}
-                <span class="label label-default" style="background: #333;">{{ genero.nome }}</span>
-            {% endfor %}
-        </td>
-        <td style="text-align: right;">
-            <a href="{% url 'editar_filme' filme.id %}" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/filme/{{ filme.id }}/delete/" class="btn-acao btn-delete">
+        <td>{{ filme.data_lancamento|date:"Y" }}</td> <td style="text-align: right;">
+            <a href="{% url 'detalhe_filme' filme.id %}?origem=admin" class="btn-acao" title="Ver Detalhes">
+                <i class="fas fa-eye"></i>
+            </a>
+
+            <a href="/admin/app/filme/{{ filme.id }}/change/" class="btn-acao" title="Editar">
+                <i class="fas fa-edit"></i>
+            </a>
+
+            <a href="{% url 'apagar_filme_admin' filme.id %}"
+               class="btn-acao btn-delete"
+               title="Apagar"
+               onclick="return confirm('Tem a certeza que deseja apagar o filme {{ filme.titulo }}?');">
                 <i class="fas fa-trash"></i>
             </a>
         </td>
     </tr>
     {% endfor %}
-{% endblock %}
-
-{% block botao_adicionar %}
-    <a href="{% url 'adicionar_filme' %}" class="btn btn-warning" style="font-weight: bold;">
-        <i class="fas fa-plus"></i> Adicionar Novo Filme
-    </a>
 {% endblock %}
 
 
@@ -2316,11 +2460,12 @@ FICHEIRO: .\app\templates\relAdmin\admin_generos.html
 
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Atores{% endblock %}
-{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+{% block titulo_pagina %}Géneros{% endblock %}
+{% block sub_titulo %}Lista de Géneros Cinematográficos{% endblock %}
 
 {% block cabecalhos_tabela %}
-    <th>Nome do Género Cinematográfico</th>
+    <th>Nome do Género</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
@@ -2328,8 +2473,14 @@ FICHEIRO: .\app\templates\relAdmin\admin_generos.html
     <tr>
         <td><strong>{{ genero.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/genero/{{ genero.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/genero/{{ genero.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'genero' genero.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'genero' genero.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar o género {{ genero.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}
@@ -2337,7 +2488,7 @@ FICHEIRO: .\app\templates\relAdmin\admin_generos.html
 
 {% block botao_adicionar %}
     <a href="/admin/app/genero/add/" class="btn btn-warning" style="font-weight: bold;">
-        <i class="fas fa-plus"></i> Adicionar genero
+        <i class="fas fa-plus"></i> Adicionar Género
     </a>
 {% endblock %}
 
@@ -2354,6 +2505,7 @@ FICHEIRO: .\app\templates\relAdmin\admin_permissoes.html
 {% block cabecalhos_tabela %}
     <th>Nome do Grupo</th>
     <th>Membros</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
@@ -2367,10 +2519,13 @@ FICHEIRO: .\app\templates\relAdmin\admin_permissoes.html
             <a href="{% url 'detalhe_grupo' grupo.id %}" class="btn-acao" title="Ver Utilizadores">
                 <i class="fas fa-eye"></i>
             </a>
-            <a href="/admin/auth/group/{{ grupo.id }}/change/" class="btn-acao" title="Editar Permissões">
+
+            <a href="{% url 'editar_grupo' grupo.id %}" class="btn-acao" title="Editar Permissões">
                 <i class="fas fa-edit"></i>
             </a>
-            <a href="/admin/auth/group/{{ grupo.id }}/delete/" class="btn-acao btn-delete">
+
+            <a href="{% url 'apagar_grupo' grupo.id %}" class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar o grupo {{ grupo.name }}?');" title="Apagar Grupo">
                 <i class="fas fa-trash"></i>
             </a>
         </td>
@@ -2379,8 +2534,8 @@ FICHEIRO: .\app\templates\relAdmin\admin_permissoes.html
 {% endblock %}
 
 {% block botao_adicionar %}
-    <a href="/admin/auth/group/add/" class="btn btn-warning" style="font-weight: bold;">
-        <i class="fas fa-plus"></i> Criar Novo Grupo
+    <a href="{% url 'criar_grupo' %}" class="btn btn-warning" style="font-weight: bold;">
+        <i class="fas fa-plus"></i> Adicionar Grupo
     </a>
 {% endblock %}
 
@@ -2391,11 +2546,12 @@ FICHEIRO: .\app\templates\relAdmin\admin_realizadores.html
 
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Atores{% endblock %}
-{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+{% block titulo_pagina %}Realizadores{% endblock %}
+{% block sub_titulo %}Lista de Realizadores da Base de Dados{% endblock %}
 
 {% block cabecalhos_tabela %}
     <th>Nome do Realizador</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
@@ -2403,8 +2559,14 @@ FICHEIRO: .\app\templates\relAdmin\admin_realizadores.html
     <tr>
         <td><strong>{{ realizador.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/ator/{{ realizador.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/ator/{{ realizador.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'realizador' realizador.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'realizador' realizador.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar o realizador {{ realizador.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}
@@ -2458,6 +2620,168 @@ FICHEIRO: .\app\templates\relAdmin\admin_utilizadores.html
     <a href="/admin/auth/user/add/" class="btn btn-warning" style="font-weight: bold;">
         <i class="fas fa-user-plus"></i> Novo Utilizador
     </a>
+{% endblock %}
+
+
+==================================================
+FICHEIRO: .\app\templates\relAdmin\detalhe_grupo.html
+==================================================
+
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}Detalhes do Grupo{% endblock %}
+{% block sub_titulo %}Gestão de Membros e Permissões do Grupo: {{ grupo.name }}{% endblock %}
+
+{% block content %}
+<div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f4f4f4; padding-bottom: 15px;">
+        <h2 style="margin: 0; color: #333;">Grupo: <span style="color: #ffc107;">{{ grupo.name }}</span></h2>
+        <a href="{% url 'lista_grupos' %}" class="btn btn-warning" style="font-weight: bold;">
+            <i class="fas fa-arrow-left"></i> Voltar à Lista
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7" style="border-right: 1px solid #eee;">
+            <h4 style="margin-bottom: 20px;"><i class="fas fa-users"></i> Utilizadores no Grupo ({{ utilizadores.count }})</h4>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th style="text-align: right;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in utilizadores %}
+                    <tr>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>{{ u.email }}</td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'perfil_detalhado' u.id %}?origem=grupo&grupo_id={{ grupo.id }}" class="btn-acao" title="Ver Perfil">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'remover_user_grupo' grupo.id u.id %}" class="btn-acao btn-delete"
+                               onclick="return confirm('Deseja remover o utilizador {{ u.username }} deste grupo?');" title="Remover do Grupo">
+                                <i class="fas fa-user-minus"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Nenhum utilizador associado a este grupo.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-5">
+            <h4 style="margin-bottom: 20px;"><i class="fas fa-lock"></i> Permissões Ativas</h4>
+            <div style="max-height: 500px; overflow-y: auto; background: #fdfdfd; padding: 15px; border-radius: 5px; border: 1px solid #f0f0f0;">
+                {% if permissoes %}
+                    <ul class="list-group list-group-flush">
+                        {% for perm in permissoes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size: 0.85em; background: transparent;">
+                            <span><strong>{{ perm.content_type.model|capfirst }}</strong> | {{ perm.name }}</span>
+                            <i class="fas fa-check-circle text-success"></i>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted text-center">Este grupo ainda não tem permissões atribuídas.</p>
+                    <div class="text-center">
+                        <a href="{% url 'editar_grupo' grupo.id %}" class="btn btn-sm btn-outline-warning">Atribuir Permissões</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+==================================================
+FICHEIRO: .\app\templates\relAdmin\editar_grupo.html
+==================================================
+
+{% extends "relAdmin/admin_base_gestao.html" %}
+
+{% block titulo_pagina %}{{ modo }} Grupo{% endblock %}
+
+<input type="text" name="nome" class="form-control" value="{% if grupo %}{{ grupo.name }}{% endif %}" required>
+
+<input class="form-check-input" type="checkbox" name="permissoes" value="{{ perm.id }}"
+       {% if grupo and perm in grupo.permissions.all %} checked {% endif %}>
+
+{% block content %}
+<div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label class="form-label" style="font-weight: bold; color: #333;">Nome do Grupo:</label>
+            <input type="text" name="nome" class="form-control" value="{{ grupo.name }}" required 
+                   style="border: 1px solid #ccc; padding: 10px;">
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" style="font-weight: bold; color: #333;">Permissões do Grupo:</label>
+            <p class="text-muted" style="font-size: 0.9em;">Selecione as ações que este grupo pode realizar no sistema.</p>
+            
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                <div class="row">
+                    {% for perm in todas_permissoes %}
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="permissoes" 
+                                   value="{{ perm.id }}" id="perm_{{ perm.id }}"
+                                   {% if perm in grupo.permissions.all %} checked {% endif %}>
+                            <label class="form-check-label" for="perm_{{ perm.id }}" style="font-size: 0.9em;">
+                                <strong>{{ perm.content_type.model|capfirst }}</strong> | {{ perm.name }}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3" style="border-top: 1px solid #eee;">
+            <button type="submit" class="btn btn-warning" style="font-weight: bold; padding: 10px 25px;">
+                <i class="fas fa-save"></i> Guardar Alterações
+            </button>
+            
+            <a href="{% url 'lista_grupos' %}" class="btn btn-secondary" style="margin-left: 10px; padding: 10px 25px;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}
+
+
+==================================================
+FICHEIRO: .\app\templates\relAdmin\editar_item_admin.html
+==================================================
+
+{% extends "relAdmin/admin_base_gestao.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Editar {{ tipo|capfirst }}: {{ item.nome }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" name="nome" class="form-value form-control" value="{{ item.nome }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+        <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
 {% endblock %}
 
 

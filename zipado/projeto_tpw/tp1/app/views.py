@@ -2,10 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth.models import User, Group
 from .models import Filme, Ator, Realizador, Genero, Avaliacao, Favorito, Guardado
 from .forms import PesquisaFilmeForm, RegistoForm, FilmeForm
 from django.urls import reverse
+from django.contrib.auth.models import User, Group, Permission
 
 # --- 1. LISTAGEM E DETALHES ---
 
@@ -98,9 +98,15 @@ def redirecionar_apos_login(request):
 
 
 def ver_perfil(request, user_id=None):
-    # Se houver ID, o admin está a ver alguém. Se não, o user vê-se a si mesmo.
     target_user = get_object_or_404(User, id=user_id) if user_id else request.user
-    return render(request, 'perfil.html', {'perfil_user': target_user})
+    origem = request.GET.get('origem')
+    grupo_id = request.GET.get('grupo_id')
+
+    return render(request, 'perfil.html', {
+        'perfil_user': target_user,
+        'origem': origem,
+        'grupo_id': grupo_id
+    })
 
 
 @login_required
@@ -186,19 +192,6 @@ def admin_avaliacoes(request):
     return render(request, 'relAdmin/admin_avaliacoes.html', {'itens': avaliacoes})
 
 
-# --- 4. GRUPOS ---
-
-@user_passes_test(lambda u: u.is_superuser)
-def lista_grupos(request):
-    grupos = Group.objects.all().order_by('name')
-    return render(request, 'relAdmin/admin_permissoes.html', {'grupos': grupos})
-
-
-@user_passes_test(lambda u: u.is_superuser)
-def detalhe_grupo(request, grupo_id):
-    grupo = get_object_or_404(Group, id=grupo_id)
-    utilizadores = grupo.user_set.all()
-    return render(request, 'detalhe_grupos.html', {'grupo': grupo, 'utilizadores': utilizadores})
 
 
 # --- 5. FAVORITOS / GUARDADOS / ADICIONAR FILME (Código Original Mantido) ---
@@ -313,15 +306,63 @@ def apagar_filme(request, filme_id):
     messages.success(request, f"O filme '{nome_filme}' foi apagado com sucesso.")
     return redirect('admin_filmes')
 
+
+@user_passes_test(lambda u: u.is_superuser)
+def lista_grupos(request):
+    grupos = Group.objects.all().order_by('name')
+    return render(request, 'relAdmin/admin_permissoes.html', {'grupos': grupos})
+
+@user_passes_test(lambda u: u.is_superuser)
+def criar_grupo(request):
+    todas_permissoes = Permission.objects.all()
+    if request.method == "POST":
+        nome = request.POST.get('nome')
+        perms_selecionadas = request.POST.getlist('permissoes')
+        if nome:
+            novo_grupo = Group.objects.create(name=nome)
+            novo_grupo.permissions.set(perms_selecionadas)
+            messages.success(request, f"Grupo '{nome}' criado!")
+            return redirect('lista_grupos')
+    return render(request, 'relAdmin/editar_grupo.html', {'todas_permissoes': todas_permissoes, 'modo': 'Criar'})
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    todas_permissoes = Permission.objects.all()
+    if request.method == "POST":
+        grupo.name = request.POST.get('nome')
+        perms_selecionadas = request.POST.getlist('permissoes')
+        grupo.permissions.set(perms_selecionadas)
+        grupo.save()
+        messages.success(request, f"Grupo '{grupo.name}' atualizado!")
+        return redirect('lista_grupos')
+    return render(request, 'relAdmin/editar_grupo.html', {'grupo': grupo, 'todas_permissoes': todas_permissoes, 'modo': 'Editar'})
+
+@user_passes_test(lambda u: u.is_superuser)
+def detalhe_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    utilizadores = grupo.user_set.all()
+    permissoes = grupo.permissions.all().select_related('content_type')
+    return render(request, 'relAdmin/detalhe_grupo.html', {'grupo': grupo, 'utilizadores': utilizadores, 'permissoes': permissoes})
+
+@user_passes_test(lambda u: u.is_superuser)
 def apagar_grupo(request, grupo_id):
     grupo = get_object_or_404(Group, id=grupo_id)
     grupo.delete()
-    messages.success(request, "Grupo eliminado com sucesso.")
-    return redirect('admin_grupos')
+    messages.success(request, "Grupo removido com sucesso.")
+    return redirect('lista_grupos')
 
+@user_passes_test(lambda u: u.is_superuser)
 def remover_utilizador_grupo(request, grupo_id, user_id):
     grupo = get_object_or_404(Group, id=grupo_id)
-    utilizador = get_object_or_404(User, id=user_id)
-    grupo.user_set.remove(utilizador)
-    messages.success(request, f"{utilizador.username} removido do grupo {grupo.name}.")
-    return redirect('detalhe_grupo', grupo_id=grupo.id)
+    u = get_object_or_404(User, id=user_id)
+    grupo.user_set.remove(u)
+    messages.success(request, f"Utilizador {u.username} removido do grupo.")
+    return redirect('detalhe_grupo', grupo_id=grupo_id)
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_avaliacao(request, av_id):
+    avaliacao = get_object_or_404(Avaliacao, id=av_id)
+    avaliacao.delete()
+    messages.success(request, "Avaliação removida com sucesso.")
+    return redirect('admin_avaliacoes')

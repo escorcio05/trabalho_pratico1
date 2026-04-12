@@ -87,12 +87,16 @@
                     </div>
                 </div>
 
-                {% if origem == 'admin' %}
-                    <a href="{% url 'admin_filmes' %}" class="btn btn-secondary">
+                {% if origem == 'admin_avaliacoes' %}
+                    <a href="{% url 'admin_avaliacoes' %}" class="btn btn-warning" style="font-weight: bold;">
+                        <i class="fas fa-arrow-left"></i> Voltar às Avaliações
+                    </a>
+                {% elif origem == 'admin_filmes' %}
+                    <a href="{% url 'admin_filmes' %}" class="btn btn-warning" style="font-weight: bold;">
                         <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
                     </a>
                 {% else %}
-                    <a href="{% url 'lista_filmes' %}" class="btn btn-secondary">
+                    <a href="{% url 'lista_filmes' %}" class="btn btn-warning" style="font-weight: bold;">
                         <i class="fas fa-arrow-left"></i> Voltar à Lista
                     </a>
                 {% endif %}

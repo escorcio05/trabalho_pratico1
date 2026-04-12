@@ -383,3 +383,13 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
 .btn-acao { color: #888; margin-left: 10px; transition: 0.3s; }
 .btn-acao:hover { color: #f5c518; }
 .btn-delete:hover { color: #d9534f; }
+
+/* Estilo para as checkboxes ficarem mais visíveis */
+.form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+.form-check-label:hover {
+    cursor: pointer;
+    color: #ffc107;
+}
