@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from .models import Filme, Ator, Realizador, Genero, Avaliacao, Favorito, Guardado
 from .forms import PesquisaFilmeForm, RegistoForm, FilmeForm
-
+from django.urls import reverse
 
 # --- 1. LISTAGEM E DETALHES ---
 
@@ -41,6 +41,10 @@ def lista_filmes(request):
 def detalhe_filme(request, filme_id):
     filme = get_object_or_404(Filme, id=filme_id)
     avaliacoes = filme.avaliacoes.all().order_by('-data_postagem')
+
+    # Captura o parâmetro 'origem' do URL (se não existir, fica None)
+    origem = request.GET.get('origem')
+
     nota_user = 0
     comentario_user = ""
 
@@ -48,12 +52,17 @@ def detalhe_filme(request, filme_id):
         if request.method == "POST":
             nova_nota = request.POST.get('nota')
             novo_comentario = request.POST.get('comentario')
+
+            # Se houver um redirecionamento após o POST, mantemos a origem no URL
             if nova_nota:
                 Avaliacao.objects.update_or_create(
                     filme=filme, utilizador=request.user,
                     defaults={'nota': int(nova_nota), 'comentario': novo_comentario}
                 )
-                return redirect('detalhe_filme', filme_id=filme.id)
+                url_redirecionamento = f"{reverse('detalhe_filme', args=[filme.id])}"
+                if origem:
+                    url_redirecionamento += f"?origem={origem}"
+                return redirect(url_redirecionamento)
 
         av = Avaliacao.objects.filter(filme=filme, utilizador=request.user).first()
         if av:
@@ -61,8 +70,11 @@ def detalhe_filme(request, filme_id):
             comentario_user = av.comentario
 
     return render(request, 'detalhe_filme.html', {
-        'filme': filme, 'avaliacoes': avaliacoes,
-        'nota_user': nota_user, 'comentario_user': comentario_user
+        'filme': filme,
+        'avaliacoes': avaliacoes,
+        'nota_user': nota_user,
+        'comentario_user': comentario_user,
+        'origem': origem  # Enviamos a origem para o template
     })
 
 
@@ -259,3 +271,57 @@ def toggle_guardado(request, filme_id):
     g, created = Guardado.objects.get_or_create(utilizador=request.user, filme=filme)
     if not created: g.delete()
     return redirect(request.META.get('HTTP_REFERER', 'lista_filmes'))
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_item(request, modelo, item_id):
+    # Determina o modelo com base na string enviada pelo URL
+    modelos = {'ator': Ator, 'genero': Genero, 'realizador': Realizador}
+    model_class = modelos.get(modelo)
+
+    item = get_object_or_404(model_class, id=item_id)
+
+    if request.method == "POST":
+        novo_nome = request.POST.get('nome')
+        if novo_nome:
+            item.nome = novo_nome
+            item.save()
+            messages.success(request, f"{modelo.capitalize()} atualizado com sucesso!")
+        return redirect(f'admin_{modelo}es' if modelo != 'ator' else 'admin_atores')
+
+    return render(request, 'relAdmin/editar_item_admin.html', {'item': item, 'tipo': modelo})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_item(request, modelo, item_id):
+    modelos = {'ator': Ator, 'genero': Genero, 'realizador': Realizador}
+    model_class = modelos.get(modelo)
+
+    item = get_object_or_404(model_class, id=item_id)
+    item.delete()
+    messages.success(request, f"{modelo.capitalize()} removido da base de dados.")
+
+    # Redireciona de volta para a lista correta
+    url_redirect = f'admin_{modelo}es' if modelo != 'ator' else 'admin_atores'
+    return redirect(url_redirect)
+
+@user_passes_test(lambda u: u.is_superuser)
+def apagar_filme(request, filme_id):
+    filme = get_object_or_404(Filme, id=filme_id)
+    nome_filme = filme.titulo
+    filme.delete()
+    messages.success(request, f"O filme '{nome_filme}' foi apagado com sucesso.")
+    return redirect('admin_filmes')
+
+def apagar_grupo(request, grupo_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    grupo.delete()
+    messages.success(request, "Grupo eliminado com sucesso.")
+    return redirect('admin_grupos')
+
+def remover_utilizador_grupo(request, grupo_id, user_id):
+    grupo = get_object_or_404(Group, id=grupo_id)
+    utilizador = get_object_or_404(User, id=user_id)
+    grupo.user_set.remove(utilizador)
+    messages.success(request, f"{utilizador.username} removido do grupo {grupo.name}.")
+    return redirect('detalhe_grupo', grupo_id=grupo.id)

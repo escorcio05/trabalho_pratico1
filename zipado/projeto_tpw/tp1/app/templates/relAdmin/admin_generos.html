@@ -1,10 +1,11 @@
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Atores{% endblock %}
-{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+{% block titulo_pagina %}Géneros{% endblock %}
+{% block sub_titulo %}Lista de Géneros Cinematográficos{% endblock %}
 
 {% block cabecalhos_tabela %}
-    <th>Nome do Género Cinematográfico</th>
+    <th>Nome do Género</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
@@ -12,8 +13,14 @@
     <tr>
         <td><strong>{{ genero.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/genero/{{ genero.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/genero/{{ genero.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'genero' genero.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'genero' genero.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar o género {{ genero.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}
@@ -21,6 +28,6 @@
 
 {% block botao_adicionar %}
     <a href="/admin/app/genero/add/" class="btn btn-warning" style="font-weight: bold;">
-        <i class="fas fa-plus"></i> Adicionar genero
+        <i class="fas fa-plus"></i> Adicionar Género
     </a>
 {% endblock %}

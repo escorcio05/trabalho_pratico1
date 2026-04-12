@@ -5,15 +5,21 @@
 
 {% block cabecalhos_tabela %}
     <th>Nome do Ator</th>
-{% endblock %}
+    <th style="text-align: right;">Ações</th> {% endblock %}
 
 {% block linhas_tabela %}
     {% for ator in itens %}
     <tr>
         <td><strong>{{ ator.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/ator/{{ ator.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/ator/{{ ator.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'ator' ator.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'ator' ator.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar {{ ator.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}

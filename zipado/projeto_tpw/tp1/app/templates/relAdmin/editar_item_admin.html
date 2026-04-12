@@ -1,0 +1,15 @@
+{% extends "relAdmin/admin_base_gestao.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Editar {{ tipo|capfirst }}: {{ item.nome }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" name="nome" class="form-value form-control" value="{{ item.nome }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+        <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

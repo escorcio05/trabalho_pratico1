@@ -87,11 +87,15 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 40px; padding-bottom: 20px;">
-                    <a href="{% url 'lista_filmes' %}" class="btn btn-default" style="background: #333; color: white; border: none;">
+                {% if origem == 'admin' %}
+                    <a href="{% url 'admin_filmes' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'lista_filmes' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Voltar à Lista
                     </a>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>

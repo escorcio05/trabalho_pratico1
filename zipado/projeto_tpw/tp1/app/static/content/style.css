@@ -368,3 +368,18 @@ input[type="text"], input[type="password"], input[type="email"], textarea {
 .admin-card:hover { border-color: #f5c518; transform: translateY(-5px); background: #222; }
 .admin-card i { font-size: 40px; color: #f5c518; margin-bottom: 15px; }
 .admin-card h4 { color: white; font-weight: bold; }
+
+
+    /* Efeito de hover nas linhas para parecer mais moderno */
+.table-hover tbody tr:hover {
+    background-color: #222 !important;
+    transition: 0.2s;
+}
+.table > tbody > tr > td {
+    border-top: 1px solid #222;
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+.btn-acao { color: #888; margin-left: 10px; transition: 0.3s; }
+.btn-acao:hover { color: #f5c518; }
+.btn-delete:hover { color: #d9534f; }

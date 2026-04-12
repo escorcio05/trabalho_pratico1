@@ -1,10 +1,11 @@
 {% extends "relAdmin/admin_base_gestao.html" %}
 
-{% block titulo_pagina %}Atores{% endblock %}
-{% block sub_titulo %}Lista de Atores da Base de Dados{% endblock %}
+{% block titulo_pagina %}Realizadores{% endblock %}
+{% block sub_titulo %}Lista de Realizadores da Base de Dados{% endblock %}
 
 {% block cabecalhos_tabela %}
     <th>Nome do Realizador</th>
+    <th style="text-align: right;">Ações</th>
 {% endblock %}
 
 {% block linhas_tabela %}
@@ -12,8 +13,14 @@
     <tr>
         <td><strong>{{ realizador.nome }}</strong></td>
         <td style="text-align: right;">
-            <a href="/admin/app/ator/{{ realizador.id }}/change/" class="btn-acao"><i class="fas fa-edit"></i></a>
-            <a href="/admin/app/ator/{{ realizador.id }}/delete/" class="btn-acao btn-delete"><i class="fas fa-trash"></i></a>
+            <a href="{% url 'editar_item_admin' 'realizador' realizador.id %}" class="btn-acao">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'apagar_item_admin' 'realizador' realizador.id %}"
+               class="btn-acao btn-delete"
+               onclick="return confirm('Tem a certeza que deseja apagar o realizador {{ realizador.nome }}?');">
+                <i class="fas fa-trash"></i>
+            </a>
         </td>
     </tr>
     {% endfor %}

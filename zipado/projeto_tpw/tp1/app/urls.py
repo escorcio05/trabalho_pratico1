@@ -40,5 +40,8 @@ urlpatterns = [
     path('dashboard/generos/', views.admin_generos, name='admin_generos'),
     path('dashboard/avaliacoes/', views.admin_avaliacoes, name='admin_avaliacoes'),
 
+    path('dashboard/editar/<str:modelo>/<int:item_id>/', views.editar_item, name='editar_item_admin'),
+    path('dashboard/apagar/<str:modelo>/<int:item_id>/', views.apagar_item, name='apagar_item_admin'),
 
+    path('dashboard/filmes/apagar/<int:filme_id>/', views.apagar_filme, name='apagar_filme_admin'),
 ]

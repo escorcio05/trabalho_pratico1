@@ -4,27 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9e0c2cf0-6828-432f-861a-8ad6f9633a19" name="Changes" comment="mini">
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/dashboard_admin.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/detalhe_grupos.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/perfil.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_atores.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_avaliacoes.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_base_gestao.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_filmes.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_generos.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_permissoes.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_realizadores.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_utilizadores.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/form_simples.html" afterDir="false" />
+    <list default="true" id="9e0c2cf0-6828-432f-861a-8ad6f9633a19" name="Changes" comment="dashboard do admin">
+      <change afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/editar_item_admin.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/static/content/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/static/content/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/editar_perfil.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/editar_perfil.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/detalhe_filme.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/detalhe_filme.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_atores.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_atores.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_base_gestao.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_base_gestao.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_filmes.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_filmes.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_generos.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_generos.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_realizadores.html" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/templates/relAdmin/admin_realizadores.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/app/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/tp1/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/tp1/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/projeto_completo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/zipado/projeto_tpw/tp1/projeto_completo.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,6 +175,7 @@
       <workItem from="1775652956748" duration="2307000" />
       <workItem from="1775750657912" duration="12319000" />
       <workItem from="1775936595971" duration="11301000" />
+      <workItem from="1775985957055" duration="2759000" />
     </task>
     <task id="LOCAL-00001" summary="Again">
       <option name="closed" value="true" />
@@ -287,7 +281,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775764303209</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="dashboard do admin">
+      <option name="closed" value="true" />
+      <created>1775985987937</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1775985987937</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -315,7 +317,8 @@
     <MESSAGE value="Add controlaFilmes e Add meter filmes" />
     <MESSAGE value="Muitas coisas" />
     <MESSAGE value="mini" />
-    <option name="LAST_COMMIT_MESSAGE" value="mini" />
+    <MESSAGE value="dashboard do admin" />
+    <option name="LAST_COMMIT_MESSAGE" value="dashboard do admin" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -328,6 +331,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Projeto_TPW$gerar_resumo.coverage" NAME="gerar_resumo Coverage Results" MODIFIED="1775666522506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/zipado/projeto_tpw/tp1" />
+    <SUITE FILE_PATH="coverage/Projeto_TPW$gerar_resumo.coverage" NAME="gerar_resumo Coverage Results" MODIFIED="1775986019378" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/zipado/projeto_tpw/tp1" />
   </component>
 </project>
